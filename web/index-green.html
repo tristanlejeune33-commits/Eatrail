@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>eatrail — Green edition · Follow the flavor trail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #3F8B54; --primary-dark: #2D6940; --accent: #C85A3A; --gold: #D9A441;
+    --cream: #F5F7EE; --cream-deep: #E6ECD6; --ink: #15211A; --muted: #5F6E62;
+    --line: #D5DDC5; --radius: 18px; --shadow: 0 10px 40px -15px rgba(24,22,20,.18);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--cream); color: var(--ink); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .container { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
+  nav { position: sticky; top: 0; z-index: 50; background: rgba(245,247,238,.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 62px; }
+  .logo { display: flex; align-items: center; gap: 10px; font-family: 'Fraunces', serif; font-weight: 800; font-size: 22px; color: var(--ink); text-decoration: none; }
+  .logo-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 0 4px rgba(63,139,84,.22); }
+  .nav-links { display: flex; gap: 24px; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color .2s; }
+  .nav-links a:hover { color: var(--primary); }
+  @media (max-width: 860px) { .nav-links { display: none; } }
+  .hero { padding: 100px 0 80px; position: relative; overflow: hidden; }
+  .hero::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 80% 20%, rgba(217,164,65,.20), transparent 60%), radial-gradient(ellipse 50% 40% at 15% 80%, rgba(200,90,58,.14), transparent 60%); pointer-events: none; }
+  .hero-inner { position: relative; text-align: center; max-width: 840px; margin: 0 auto; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--primary); padding: 8px 14px; border: 1px solid rgba(63,139,84,.28); background: rgba(63,139,84,.08); border-radius: 999px; margin-bottom: 28px; }
+  .eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--primary); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(1.5); } }
+  h1.hero-title { font-family: 'Fraunces', serif; font-weight: 800; font-size: clamp(42px, 7vw, 84px); line-height: .98; letter-spacing: -0.03em; margin-bottom: 24px; }
+  h1 .accent { color: var(--primary); font-style: italic; font-weight: 600; }
+  .hero-sub { font-size: clamp(17px, 2vw, 20px); color: var(--muted); max-width: 620px; margin: 0 auto 36px; }
+  .hero-cta { display: inline-flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 26px; border-radius: 999px; font-weight: 600; font-size: 15px; text-decoration: none; transition: all .2s; border: none; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .btn-primary { background: var(--ink); color: var(--cream); }
+  .btn-primary:hover { background: var(--primary); transform: translateY(-2px); }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+  .btn-ghost:hover { background: var(--ink); color: var(--cream); }
+  .hero-meta { margin-top: 50px; display: flex; justify-content: center; gap: 50px; flex-wrap: wrap; color: var(--muted); font-size: 13px; }
+  .hero-meta strong { display: block; font-family: 'Fraunces', serif; font-size: 28px; color: var(--ink); font-weight: 700; }
+  section { padding: 90px 0; }
+  .section-head { max-width: 700px; margin-bottom: 56px; }
+  .section-tag { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: var(--primary); margin-bottom: 14px; }
+  h2 { font-family: 'Fraunces', serif; font-weight: 700; font-size: clamp(32px, 4.5vw, 48px); line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 16px; }
+  .section-lead { color: var(--muted); font-size: 18px; max-width: 620px; }
+  .concept { background: var(--cream-deep); border-radius: 36px; margin: 0 28px; padding: 64px clamp(28px, 6vw, 72px); }
+  .concept-steps { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .step { background: var(--cream); padding: 28px; border-radius: var(--radius); border: 1px solid var(--line); }
+  .step-num { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: var(--primary); color: var(--cream); border-radius: 50%; font-family: 'Fraunces', serif; font-weight: 800; font-size: 14px; margin-bottom: 16px; }
+  .step h3 { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .step p { color: var(--muted); font-size: 14px; }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 820px) { .split { grid-template-columns: 1fr; } }
+  .card { background: white; border: 1px solid var(--line); border-radius: var(--radius); padding: 36px; }
+  .card.dark { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+  .card.dark .label { color: var(--gold); }
+  .label { font-size: 12px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: var(--primary); margin-bottom: 10px; display: block; }
+  .card h3 { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; margin-bottom: 18px; }
+  ul.bullets { list-style: none; }
+  ul.bullets li { position: relative; padding-left: 28px; margin-bottom: 12px; font-size: 15px; }
+  ul.bullets li::before { content: ""; position: absolute; left: 0; top: 10px; width: 16px; height: 2px; background: var(--primary); }
+  .card.dark ul.bullets li::before { background: var(--gold); }
+  .card.dark ul.bullets li { color: #DCD5C7; }
+  .features { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .feature { background: white; border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; transition: transform .25s, box-shadow .25s, border-color .25s; }
+  .feature:hover { transform: translateY(-4px); box-shadow: var(--shadow); border-color: var(--primary); }
+  .feature-icon { width: 44px; height: 44px; border-radius: 12px; background: rgba(63,139,84,.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; font-family: 'Fraunces', serif; margin-bottom: 18px; }
+  .feature h3 { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+  .feature p { color: var(--muted); font-size: 14.5px; margin-bottom: 14px; }
+  .feature-tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); padding: 4px 10px; background: rgba(200,90,58,.10); border-radius: 999px; }
+  .demo-wrap { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: start; }
+  @media (max-width: 860px) { .demo-wrap { grid-template-columns: 1fr; } }
+  .demo-left h3 { font-family: 'Fraunces', serif; font-size: 22px; margin-bottom: 12px; }
+  .demo-left p { color: var(--muted); margin-bottom: 20px; font-size: 15px; }
+  .recipe-picker { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+  .recipe-btn { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: white; border: 1px solid var(--line); border-radius: var(--radius); cursor: pointer; transition: all .2s; text-align: left; font-family: 'Inter', sans-serif; font-size: 15px; color: var(--ink); }
+  .recipe-btn:hover { border-color: var(--primary); transform: translateX(4px); }
+  .recipe-btn.active { border-color: var(--primary); background: rgba(63,139,84,.08); }
+  .recipe-btn strong { display: block; font-family: 'Fraunces', serif; font-size: 17px; font-weight: 700; margin-bottom: 2px; }
+  .recipe-btn .r-meta { font-size: 12px; color: var(--muted); }
+  .recipe-badge { width: 42px; height: 42px; border-radius: 10px; background: rgba(63,139,84,.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-weight: 800; font-size: 14px; }
+  .phone { width: 100%; max-width: 340px; margin: 0 auto; background: var(--ink); border-radius: 36px; padding: 10px; box-shadow: var(--shadow); }
+  .phone-screen { background: var(--cream); border-radius: 28px; overflow: hidden; min-height: 560px; display: flex; flex-direction: column; }
+  .phone-header { padding: 14px 20px 10px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--muted); font-weight: 600; }
+  .phone-hero { height: 140px; display: flex; align-items: flex-end; padding: 16px; color: white; position: relative; transition: background .4s; }
+  .phone-hero .auth-score { position: absolute; top: 14px; right: 14px; background: rgba(0,0,0,.35); backdrop-filter: blur(6px); padding: 6px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .phone-hero h4 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
+  .phone-hero .r-origin { font-size: 12px; opacity: .9; margin-top: 4px; }
+  .phone-body { padding: 18px; flex: 1; display: flex; flex-direction: column; gap: 12px; }
+  .phone-section-label { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
+  .ingredients-list { display: flex; flex-direction: column; gap: 6px; }
+  .ingredient { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: white; border: 1px solid var(--line); border-radius: 10px; font-size: 13px; }
+  .ingredient .qty { color: var(--muted); font-size: 11px; }
+  .trail-btn { margin-top: auto; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 14px; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background .2s; }
+  .trail-btn:hover { background: var(--primary-dark); }
+  .shops-list { display: flex; flex-direction: column; gap: 8px; max-height: 0; overflow: hidden; transition: max-height .5s ease; }
+  .shops-list.open { max-height: 400px; }
+  .shop { padding: 10px 12px; background: white; border: 1px solid var(--line); border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+  .shop .s-name { font-family: 'Fraunces', serif; font-weight: 700; font-size: 13px; display: block; color: var(--ink); }
+  .shop .s-dist { color: var(--muted); font-size: 11px; }
+  .shop .s-score { background: var(--accent); color: white; font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 999px; }
+  .shop .s-price { color: var(--muted); font-size: 12px; }
+  .shop-meta { display: flex; align-items: center; gap: 6px; }
+  .targets { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .target { padding: 32px; border-radius: var(--radius); background: var(--cream-deep); border: 1px solid var(--line); }
+  .target-num { font-size: 32px; margin-bottom: 14px; display: block; font-family: 'Fraunces', serif; color: var(--primary); font-weight: 800; font-style: italic; }
+  .target h3 { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .target p { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+  .target ul li { font-size: 13.5px; margin-bottom: 8px; }
+  .biz-grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .biz-card { background: white; border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; transition: transform .25s, box-shadow .25s; }
+  .biz-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+  .biz-card.highlight { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+  .biz-card.highlight .biz-title { color: white; }
+  .biz-card.highlight .biz-label { color: var(--gold); }
+  .biz-card.highlight .biz-desc { color: #B8B0A3; }
+  .biz-card.highlight ul.bullets li { color: #DCD5C7; }
+  .biz-card.highlight ul.bullets li::before { background: var(--gold); }
+  .biz-label { font-size: 11px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: var(--primary); margin-bottom: 12px; display: block; }
+  .biz-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .biz-desc { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+  .biz-metric { display: inline-block; font-family: 'Fraunces', serif; font-weight: 800; color: var(--primary); font-size: 20px; margin-bottom: 10px; font-style: italic; }
+  .biz-card.highlight .biz-metric { color: var(--gold); }
+  .stripe { background: var(--ink); color: var(--cream); border-radius: 36px; margin: 0 28px; padding: 72px clamp(28px, 6vw, 72px); }
+  .stripe h2 { color: var(--cream); }
+  .stripe .section-lead { color: #B8B0A3; }
+  .stripe .section-tag { color: var(--gold); }
+  .stripe-grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 48px; }
+  .diff { padding: 28px; border-top: 1px solid rgba(255,255,255,.12); }
+  .diff-num { font-family: 'Fraunces', serif; font-size: 48px; font-weight: 300; color: var(--gold); font-style: italic; line-height: 1; margin-bottom: 14px; display: block; }
+  .diff h3 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+  .diff p { color: #B8B0A3; font-size: 14.5px; }
+  .vision { text-align: center; max-width: 760px; margin: 0 auto; }
+  .vision-quote { font-family: 'Fraunces', serif; font-style: italic; font-size: clamp(24px, 3.5vw, 36px); font-weight: 500; line-height: 1.3; letter-spacing: -0.01em; color: var(--ink); padding: 40px 0; }
+  .vision-quote::before { content: "\201C"; font-family: 'Fraunces', serif; color: var(--primary); font-size: 80px; line-height: 0; vertical-align: -20px; }
+  .vision-quote::after { content: "\201D"; font-family: 'Fraunces', serif; color: var(--primary); font-size: 80px; line-height: 0; vertical-align: -20px; }
+  footer { padding: 40px 0 60px; border-top: 1px solid var(--line); margin-top: 80px; }
+  .foot { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; color: var(--muted); font-size: 13px; }
+  .foot-links { display: flex; gap: 24px; }
+  .foot-links a { color: var(--muted); text-decoration: none; }
+  .foot-links a:hover { color: var(--primary); }
+  .fade-in { opacity: 0; transform: translateY(16px); transition: all .8s; }
+  .fade-in.visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+<nav><div class="container nav-inner"><a href="#" class="logo"><span class="logo-dot"></span>eatrail<span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:#3F8B54;background:rgba(63,139,84,.12);padding:3px 8px;border-radius:999px;margin-left:6px;letter-spacing:.05em;">GREEN</span></a><div class="nav-links"><a href="#concept">Concept</a><a href="#features">Features</a><a href="#demo">Démo</a><a href="#target">Cible</a><a href="#business">Revenus</a><a href="#why">Pourquoi nous</a> <a href="index.html" style="color:#C85A3A;border:1px solid rgba(200,90,58,.3);padding:5px 12px;border-radius:999px;font-size:12px;">→ version terracotta</a></div></div></nav>
+
+<header class="hero"><div class="container hero-inner"><span class="eyebrow">NYC · Food · Map · 2026</span><h1 class="hero-title">Cuisine le monde.<br /><span class="accent">Achète à côté.</span></h1><p class="hero-sub">eatrail relie chaque recette du monde aux magasins qui vendent vraiment les bons ingrédients autour de toi. Pas de blabla, pas de détours — juste le bon plat et la bonne adresse.</p><div class="hero-cta"><a class="btn btn-primary" href="#concept">Voir le concept</a><a class="btn btn-ghost" href="#demo">Essayer la démo</a></div><div class="hero-meta"><div><strong>40+</strong>cuisines du monde</div><div><strong>800+</strong>magasins NYC ciblés</div><div><strong>1</strong>seule app</div></div></div></header>
+
+<section id="concept"><div class="concept container"><div class="section-head"><span class="section-tag">Le concept</span><h2>Un trail entre ta cuisine et ton quartier.</h2><p class="section-lead">Le nom le dit : <strong>eat</strong> + <strong>trail</strong>. Une piste claire qui relie l'envie d'un plat à l'endroit exact où trouver ses ingrédients. Quatre étapes, zéro friction.</p></div><div class="concept-steps"><div class="step"><span class="step-num">1</span><h3>Choisis un plat</h3><p>Recettes du monde entier, validées par des cuisiniers natifs. Filtre par pays, humeur, budget, régime.</p></div><div class="step"><span class="step-num">2</span><h3>Vois les ingrédients</h3><p>Liste claire, portions ajustables, substitutions possibles, score d'authenticité transparent.</p></div><div class="step"><span class="step-num">3</span><h3>Trouve où acheter</h3><p>Carte locale des magasins qui vendent (vraiment) chaque ingrédient, avec prix et avis communautaires.</p></div><div class="step"><span class="step-num">4</span><h3>Suis le trail</h3><p>Itinéraire optimisé multi-magasins, liste d'achats auto-générée, optimisée selon budget + authenticité.</p></div></div></div></section>
+
+<section id="problem"><div class="container"><div class="section-head"><span class="section-tag">Problème · Solution</span><h2>Trois frictions. Une app.</h2><p class="section-lead">Cuisiner un plat du monde à New York, c'est jongler entre 4 apps, 3 quartiers et 2 blogs douteux. eatrail remplace tout ça.</p></div><div class="split"><div class="card"><span class="label">Avant eatrail</span><h3>Ce que vivent les cuisiniers curieux aujourd'hui</h3><ul class="bullets"><li>Recettes floues ou américanisées, pas toujours authentiques.</li><li>Ingrédients rares introuvables dans les supermarchés classiques.</li><li>Aucune app ne relie recette et magasin local.</li><li>Trois quartiers à traverser pour finir ton plat.</li><li>Prix qui varient du simple au triple selon l'adresse.</li></ul></div><div class="card dark"><span class="label">Avec eatrail</span><h3>La promesse : un seul flow, de l'envie à l'assiette.</h3><ul class="bullets"><li>Recettes validées par des natifs, score d'authenticité visible.</li><li>Map des magasins qui ont vraiment l'ingrédient rare.</li><li>Liste d'achats auto-générée, optimisée par trajet.</li><li>Mode budget qui ajuste recette, quantités et magasins.</li><li>Un seul déplacement, un seul trail, un seul kiff.</li></ul></div></div></div></section>
+
+<section id="features"><div class="container"><div class="section-head"><span class="section-tag">Features clés</span><h2>Ce qui rend eatrail irréplicable.</h2><p class="section-lead">Six mécaniques produit pensées pour qu'un utilisateur ouvre eatrail, trouve ce qu'il cherche, et revienne chaque semaine.</p></div><div class="features"><div class="feature"><div class="feature-icon">A</div><h3>Score d'authenticité</h3><p>Chaque recette est notée 0 à 100 selon la source, la validation d'un natif, la régionalité. Tu sais ce que tu cuisines.</p><span class="feature-tag">Différenciant</span></div><div class="feature"><div class="feature-icon">T</div><h3>Trail Optimizer</h3><p>Itinéraire multi-magasins calculé selon distance + prix + authenticité. Tes courses en une seule boucle.</p><span class="feature-tag">Utilitaire</span></div><div class="feature"><div class="feature-icon">S</div><h3>Scan recette</h3><p>Photo d'une recette papier ou screenshot blog → ingrédients extraits + liens magasins locaux. Instantané.</p><span class="feature-tag">IA</span></div><div class="feature"><div class="feature-icon">$</div><h3>Mode budget</h3><p>Active une limite hebdo. Recettes, substitutions, magasins s'ajustent automatiquement.</p><span class="feature-tag">Inclusif</span></div><div class="feature"><div class="feature-icon">P</div><h3>Pantry AI</h3><p>Inventaire du garde-manger → recettes anti-gaspi proposées chaque soir.</p><span class="feature-tag">Rétention</span></div><div class="feature"><div class="feature-icon">M</div><h3>Map communautaire</h3><p>Les utilisateurs signalent où ils ont trouvé les ingrédients rares. Plus de searches.</p><span class="feature-tag">Network effect</span></div></div></div></section>
+
+<section id="demo"><div class="container"><div class="section-head"><span class="section-tag">Essai rapide</span><h2>Clique une recette. Suis le trail.</h2><p class="section-lead">Un mini aperçu de l'app. Choisis un plat, vois les ingrédients, puis déclenche le trail pour afficher les magasins qui les vendent autour de toi.</p></div><div class="demo-wrap"><div class="demo-left"><h3>Choisis un plat</h3><p>Trois recettes issues du catalogue eatrail, chacune validée par un cuisinier natif. Clique pour voir les ingrédients apparaître, puis le trail des magasins.</p><div class="recipe-picker"><button class="recipe-btn active" data-recipe="bibimbap"><div><strong>Bibimbap</strong><span class="r-meta">Corée · 35 min · authenticité 92</span></div><div class="recipe-badge">BM</div></button><button class="recipe-btn" data-recipe="cochinita"><div><strong>Cochinita Pibil</strong><span class="r-meta">Yucatán · 4 h · authenticité 96</span></div><div class="recipe-badge">CP</div></button><button class="recipe-btn" data-recipe="tagine"><div><strong>Tagine au citron confit</strong><span class="r-meta">Maroc · 1 h 20 · authenticité 89</span></div><div class="recipe-badge">TG</div></button></div><p style="font-size:13px;color:var(--muted);">Démo statique côté client. Dans l'app réelle : catalogue illimité, géoloc live, itinéraire optimisé, liste d'achats partageable.</p></div><div class="phone"><div class="phone-screen"><div class="phone-header"><span>09:41</span><span>eatrail</span><span>100%</span></div><div class="phone-hero" id="p-hero"><div class="auth-score" id="p-auth">Auth 92</div><div><h4 id="p-title">Bibimbap</h4><div class="r-origin" id="p-origin">Corée · 35 min · 4 pers.</div></div></div><div class="phone-body"><span class="phone-section-label">Ingrédients</span><div class="ingredients-list" id="p-ing"></div><button class="trail-btn" id="p-btn">Voir où acheter →</button><span class="phone-section-label" id="p-shops-label" style="display:none;">Magasins près de toi</span><div class="shops-list" id="p-shops"></div></div></div></div></div></div></section>
+
+<section id="target"><div class="container"><div class="section-head"><span class="section-tag">Cible</span><h2>Pour qui on construit eatrail.</h2><p class="section-lead">Trois profils urbains qui partagent une même frustration : cuisiner du vrai, sans y passer la journée.</p></div><div class="targets"><div class="target"><span class="target-num">01</span><h3>Les expats</h3><p>Asiatiques, latinos, européens, africains — toute diaspora cherchant ses saveurs d'origine à NYC.</p><ul class="bullets"><li>Veut cuisiner comme à la maison.</li><li>Cherche des ingrédients précis et authentiques.</li><li>Connaît les quartiers ethniques mais pas tout.</li></ul></div><div class="target"><span class="target-num">02</span><h3>Jeunes actifs urbains</h3><p>25-38 ans, revenu moyen à élevé, peu de temps, envie de varier.</p><ul class="bullets"><li>Veut sortir du takeout mais sans friction.</li><li>Sensible au budget et à la découverte.</li><li>Adopte vite les apps utiles au quotidien.</li></ul></div><div class="target"><span class="target-num">03</span><h3>Passionnés cuisine du monde</h3><p>Foodies, home cooks, curieux culturels qui voient la cuisine comme un voyage.</p><ul class="bullets"><li>Veut dépasser les blogs US pour le vrai.</li><li>Prêt à aller loin pour un bon ingrédient.</li><li>Partage ses découvertes, crée du contenu.</li></ul></div></div></div></section>
+
+<section id="business"><div class="container"><div class="section-head"><span class="section-tag">Modèle économique</span><h2>Cinq sources de revenus, un même moteur.</h2><p class="section-lead">eatrail monétise sans casser l'expérience utilisateur. La plupart des revenus viennent des commerces et des marques, pas de la poche du cuisinier. Premium reste optionnel.</p></div><div class="biz-grid"><div class="biz-card"><span class="biz-label">Revenu 1</span><div class="biz-title">Sponsoring magasins</div><div class="biz-metric">$80–$300 / mois</div><p class="biz-desc">Placement premium, badge « partenaire certifié », fiche enrichie sur la map.</p><ul class="bullets"><li>Abonnement fixe mensuel par boutique.</li><li>Upsell CPM pour mises en avant contextuelles.</li><li>Cible : 3 000 à 8 000 commerces en année 2.</li></ul></div><div class="biz-card"><span class="biz-label">Revenu 2</span><div class="biz-title">Affiliation</div><div class="biz-metric">3–8 % / panier</div><p class="biz-desc">Partenariats avec Instacart, Fresh Direct, Amazon Fresh, Weee!, Umamicart, HMart online.</p><ul class="bullets"><li>Commission sur chaque achat référé.</li><li>L'utilisateur reste dans eatrail, checkout délégué.</li><li>Aucun stock ni logistique à gérer.</li></ul></div><div class="biz-card highlight"><span class="biz-label">Revenu 3</span><div class="biz-title">Publicité native</div><div class="biz-metric">$15–$40 CPM</div><p class="biz-desc">Brands food internationales : Kikkoman, Goya, Maggi, challengers diasporiques.</p><ul class="bullets"><li>CPM premium grâce au ciblage ultra-pertinent.</li><li>Ex : marque coréenne qui sponsorise les recettes coréennes.</li><li>Format natif, jamais intrusif.</li></ul></div><div class="biz-card"><span class="biz-label">Revenu 4</span><div class="biz-title">Premium utilisateur</div><div class="biz-metric">$4,99 / mois</div><p class="biz-desc">Abonnement optionnel pour les power users qui veulent tout débloquer.</p><ul class="bullets"><li>No ads, scan illimité, Pantry AI complet.</li><li>Recettes exclusives signées chefs.</li><li>Export avancé, mode offline, pré-commande partenaires.</li></ul></div><div class="biz-card"><span class="biz-label">Revenu 5</span><div class="biz-title">Data CPG (long terme)</div><div class="biz-metric">marge &gt; 70 %</div><p class="biz-desc">Insights anonymisés sur les tendances ingrédient par quartier.</p><ul class="bullets"><li>Strict opt-in utilisateur, conforme RGPD / CCPA.</li><li>Activé à ~200k MAU atteint.</li><li>Ouvre un upsell SaaS pour les marques.</li></ul></div><div class="biz-card"><span class="biz-label">Objectifs</span><div class="biz-title">Unit economics année 2</div><div class="biz-metric">LTV &gt; 3 × CAC</div><p class="biz-desc">Le mix est construit pour être rentable dès le mois 4 par nouvelle ville.</p><ul class="bullets"><li>ARPU mixte ~ $2,40 / mois.</li><li>CAC cible &lt; $4 via contenu organique + referral.</li><li>Break-even NYC vers 80–120 k MAU.</li></ul></div></div></div></section>
+
+<section id="why"><div class="stripe container"><div class="section-head"><span class="section-tag">Pourquoi nous</span><h2>Ce que personne ne fait aujourd'hui.</h2><p class="section-lead">Google Maps a les magasins. Yelp a les avis. HelloFresh a les box. Aucun ne relie tout. eatrail construit le pont qui manquait.</p></div><div class="stripe-grid"><div class="diff"><span class="diff-num">01</span><h3>Le seul graphe recette × ingrédient × magasin</h3><p>Une donnée unique, enrichie par les utilisateurs à chaque achat. Data network effect défendable.</p></div><div class="diff"><span class="diff-num">02</span><h3>L'authenticité comme produit</h3><p>On ne se contente pas d'indexer — on valide. Portée par une communauté de diasporas qui possèdent leur culture.</p></div><div class="diff"><span class="diff-num">03</span><h3>Local + global en une app</h3><p>Le monde entier dans ta poche, mais ancré à 7 minutes à pied de chez toi.</p></div><div class="diff"><span class="diff-num">04</span><h3>Scalable par ville, pas par catalogue</h3><p>Chaque ville ajoutée est un nouveau terrain de jeu. Le produit est le même, la magie locale change.</p></div></div></div></section>
+
+<section><div class="container vision"><span class="section-tag">La vision</span><div class="vision-quote">Dans cinq ans, quand tu veux cuisiner un plat du monde à NYC, Londres ou Singapour, tu n'ouvres pas quatre apps. Tu ouvres eatrail.</div><div class="hero-cta" style="margin-top:20px;"><a class="btn btn-primary" href="#">Rejoindre la waitlist</a></div></div></section>
+
+<footer><div class="container foot"><div class="logo"><span class="logo-dot"></span>eatrail</div><div class="foot-links"><a href="#concept">Concept</a><a href="#features">Features</a><a href="#demo">Démo</a><a href="#business">Revenus</a><a href="#why">Différenciation</a></div><div>© 2026 eatrail · Follow the flavor trail.</div></div></footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }); }, { threshold: .1 });
+document.querySelectorAll('section, .step, .feature, .target, .diff, .card, .biz-card').forEach(el => { el.classList.add('fade-in'); observer.observe(el); });
+
+const recipes = {
+  bibimbap: {
+    title: "Bibimbap", origin: "Corée · 35 min · 4 pers.", auth: 92,
+    gradient: "linear-gradient(135deg, #3F8B54 0%, #D9A441 100%)",
+    ingredients: [["Riz japonica","320 g"],["Bœuf haché","250 g"],["Pâte gochujang","3 c.s."],["Huile de sésame","2 c.s."],["Épinards frais","200 g"],["Carotte julienne","1"],["Œufs","4"]],
+    shops: [{name:"H Mart — 32nd St",dist:"0.6 mi · 11 min à pied",score:98,price:"$$"},{name:"Hanyang Mart",dist:"0.9 mi · 15 min",score:94,price:"$"},{name:"Whole Foods Bryant Park",dist:"0.4 mi · 7 min",score:62,price:"$$$"}]
+  },
+  cochinita: {
+    title: "Cochinita Pibil", origin: "Yucatán · 4 h · 6 pers.", auth: 96,
+    gradient: "linear-gradient(135deg, #2D6940 0%, #7FB069 55%, #D9A441 100%)",
+    ingredients: [["Épaule de porc","1,5 kg"],["Pâte d'achiote","80 g"],["Jus d'orange amère","200 ml"],["Feuilles de bananier","4"],["Ail","6 gousses"],["Oignon rouge","2"],["Chiles habaneros","3"]],
+    shops: [{name:"Tulcingo Deli — Hell's Kitchen",dist:"0.5 mi · 9 min",score:95,price:"$"},{name:"Mi Tierra Market",dist:"1.2 mi · bus",score:91,price:"$"},{name:"Fine Fare Supermarket",dist:"0.8 mi · 14 min",score:71,price:"$$"}]
+  },
+  tagine: {
+    title: "Tagine au citron confit", origin: "Maroc · 1 h 20 · 4 pers.", auth: 89,
+    gradient: "linear-gradient(135deg, #5C8A3A 0%, #C85A3A 100%)",
+    ingredients: [["Cuisses de poulet","6"],["Citrons confits","2"],["Olives vertes","150 g"],["Coriandre fraîche","1 botte"],["Ras-el-hanout","2 c.s."],["Safran","1 pincée"],["Gingembre frais","20 g"]],
+    shops: [{name:"Kalustyan's — Murray Hill",dist:"0.3 mi · 6 min",score:97,price:"$$"},{name:"Sahadi's — Atlantic Ave",dist:"2.4 mi · métro",score:94,price:"$$"},{name:"Trader Joe's",dist:"0.5 mi · 9 min",score:58,price:"$$"}]
+  }
+};
+
+const elTitle=document.getElementById('p-title'),elOrigin=document.getElementById('p-origin'),elAuth=document.getElementById('p-auth'),elHero=document.getElementById('p-hero'),elIng=document.getElementById('p-ing'),elBtn=document.getElementById('p-btn'),elShops=document.getElementById('p-shops'),elShopsLabel=document.getElementById('p-shops-label');
+
+function renderRecipe(key){
+  const r = recipes[key];
+  elTitle.textContent = r.title;
+  elOrigin.textContent = r.origin;
+  elAuth.textContent = 'Auth ' + r.auth;
+  elHero.style.background = r.gradient;
+  elIng.innerHTML = r.ingredients.map(([n,q]) => `<div class="ingredient"><span>${n}</span><span class="qty">${q}</span></div>`).join('');
+  elShops.classList.remove('open');
+  elShops.innerHTML = '';
+  elShopsLabel.style.display = 'none';
+  elBtn.textContent = 'Voir où acheter →';
+  elBtn.dataset.open = 'false';
+}
+
+document.querySelectorAll('.recipe-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.recipe-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderRecipe(btn.dataset.recipe);
+  });
+});
+
+elBtn.addEventListener('click', () => {
+  const activeKey = document.querySelector('.recipe-btn.active').dataset.recipe;
+  const r = recipes[activeKey];
+  if (elBtn.dataset.open === 'true') {
+    elShops.classList.remove('open');
+    elShops.innerHTML = '';
+    elShopsLabel.style.display = 'none';
+    elBtn.textContent = 'Voir où acheter →';
+    elBtn.dataset.open = 'false';
+  } else {
+    elShops.innerHTML = r.shops.map(s => `<div class="shop"><div><span class="s-name">${s.name}</span><span class="s-dist">${s.dist}</span></div><div class="shop-meta"><span class="s-price">${s.price}</span><span class="s-score">${s.score}</span></div></div>`).join('');
+    elShopsLabel.style.display = 'block';
+    requestAnimationFrame(() => elShops.classList.add('open'));
+    elBtn.textContent = 'Masquer les magasins';
+    elBtn.dataset.open = 'true';
+  }
+});
+
+renderRecipe('bibimbap');
+</script>
+</body>
+</html>

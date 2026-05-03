@@ -1,0 +1,27 @@
+{
+  "name": "eatrail · cuisine le monde",
+  "short_name": "eatrail",
+  "description": "Cuisine le monde, achète à côté. 625 recettes validées par des chefs natifs et 30 magasins NYC.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F5F7EE",
+  "theme_color": "#3F8B54",
+  "lang": "fr",
+  "dir": "ltr",
+  "categories": ["food", "lifestyle", "shopping"],
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Mon planning", "short_name": "Planning", "url": "/#/calendar" },
+    { "name": "Mes provisions", "short_name": "Provisions", "url": "/#/pantry" },
+    { "name": "Mon panier", "short_name": "Panier", "url": "/#/cart" }
+  ]
+}

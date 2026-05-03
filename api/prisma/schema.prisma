@@ -1,0 +1,492 @@
+// eatrail · Prisma schema
+// Postgres on Railway. Run:
+//   npx prisma migrate dev --name init    (creates DB + first migration)
+//   npx prisma generate                   (regenerates client)
+//   node prisma/seed.js                   (loads 625 recipes + 30 shops)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────────────────────────────────────────
+//  AUTH & ACCOUNTS
+// ───────────────────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(uuid()) @db.Uuid
+  email         String   @unique @db.Citext
+  passwordHash  String?  // nullable: OAuth-only users have no password
+  name          String
+  avatarColor   String?  @db.VarChar(16)
+  // ─── v1.8 — OAuth providers ─────────────────────────────
+  googleId      String?  @unique
+  appleId       String?  @unique
+  emailVerifiedAt DateTime? @db.Timestamptz
+  status        UserStatus @default(ACTIVE)
+  createdAt     DateTime @default(now()) @db.Timestamptz
+  updatedAt     DateTime @updatedAt @db.Timestamptz
+  lastLoginAt   DateTime? @db.Timestamptz
+
+  preferences      UserPreferences?
+  sessions         Session[]
+  favorites        Favorite[]
+  cartItems        CartItem[]
+  pantryItems      PantryItem[]
+  reviews          Review[]
+  ingredientChecks IngredientCheck[]
+  mealPlans        MealPlan[]
+  recipeSubmissions UserRecipeSubmission[]
+
+  @@map("users")
+}
+
+// ───────────────────────────────────────────────────────────
+//  USER-GENERATED RECIPES (UGC, moderated)
+// ───────────────────────────────────────────────────────────
+
+model UserRecipeSubmission {
+  id              String     @id @default(uuid()) @db.Uuid
+  userId          String     @db.Uuid
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Free-form payload (mirror of Recipe shape but pre-moderation)
+  title           String
+  country         String
+  region          String?
+  flag            String?
+  durationMin     Int?
+  servings        Int        @default(4)
+  difficulty      Int        @default(2)
+  budgetPerPerson Float?
+  budgetLevel     String?    @db.VarChar(8)
+  summary         String?
+  story           String?
+  category        String?
+  ingredients     Json       @default("[]")  // array of { name, qty, unit, tags, isRare, substitutes }
+  steps           Json       @default("[]")  // array of { title, instruction, time }
+  diets           String[]   @default([])
+  moods           String[]   @default([])
+  allergens       String[]   @default([])
+  imageUrl        String?
+  // Moderation
+  status          SubmissionStatus @default(PENDING)
+  moderatorNote   String?
+  approvedRecipeId String?   // if approved, link to the Recipe row created from it
+  createdAt       DateTime   @default(now()) @db.Timestamptz
+  updatedAt       DateTime   @updatedAt @db.Timestamptz
+  reviewedAt      DateTime?  @db.Timestamptz
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+  @@map("user_recipe_submissions")
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CHANGES_REQUESTED
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+  PENDING_EMAIL
+}
+
+model Session {
+  // Token is cryptographically-random, opaque to clients (sent as httpOnly cookie)
+  token       String   @id
+  userId      String   @db.Uuid
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  expiresAt   DateTime @db.Timestamptz
+  lastSeenAt  DateTime @default(now()) @db.Timestamptz
+  userAgent   String?
+  ipHash      String?  // sha256(ip+salt) for abuse detection w/o storing raw IP
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model UserPreferences {
+  userId             String   @id @db.Uuid
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  locale             String   @default("fr")
+  cuisines           String[] @default([])
+  allergens          String[] @default([])
+  dietary            String[] @default([])
+  budgetPerPerson    Float?
+  householdSize      Int      @default(2)
+  onboardingStep     Int      @default(1)
+  onboardingComplete Boolean  @default(false)
+  // Free-form JSON for future fields without migrations
+  extra              Json     @default("{}")
+  updatedAt          DateTime @updatedAt @db.Timestamptz
+
+  @@map("user_preferences")
+}
+
+// ───────────────────────────────────────────────────────────
+//  RECIPES (625 across 25 cuisines)
+// ───────────────────────────────────────────────────────────
+
+model Recipe {
+  id              String   @id  // slug-style: "carbonara", "pad-thai"
+  title           String
+  country         String
+  region          String?
+  flag            String?  // emoji
+  authScore       Int      @default(80)
+  durationMin     Int
+  servings        Int      @default(4)
+  difficulty      Int      @default(2)  // 1-3
+  budgetPerPerson Float
+  budgetLevel     String   @db.VarChar(8)  // "$", "$$", "$$$"
+  gradient        String?
+  summary         String
+  story           String?
+  category        String?  // "ragoût", "soupe", "pâtes"...
+  validatorName   String?
+  validatorRole   String?
+  validatorCity   String?
+  imageUrl        String?  // resolved Pexels URL or local path
+  // ─── v1.8 — nutrition (lazy-filled from USDA, per serving) ──
+  caloriesKcal    Float?
+  proteinG        Float?
+  carbsG          Float?
+  fatG            Float?
+  fiberG          Float?
+  sodiumMg        Float?
+  nutritionFetchedAt DateTime? @db.Timestamptz
+  createdAt       DateTime @default(now()) @db.Timestamptz
+  updatedAt       DateTime @updatedAt @db.Timestamptz
+
+  ingredients     RecipeIngredient[]
+  steps           RecipeStep[]
+  diets           RecipeDiet[]
+  moods           RecipeMood[]
+  allergens       RecipeAllergen[]
+  favorites       Favorite[]
+  cartItems       CartItem[]
+  reviews         Review[]
+  mealPlans       MealPlan[]
+
+  @@index([country])
+  @@index([category])
+  @@index([authScore(sort: Desc)])
+  @@map("recipes")
+}
+
+model RecipeIngredient {
+  id           String   @id @default(uuid()) @db.Uuid
+  recipeId     String
+  recipe       Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  position     Int
+  name         String
+  qty          Float?
+  unit         String?
+  tags         String[] @default([])  // ["pantry", "se-asian", "butcher"]
+  isRare       Boolean  @default(false)
+  substitutes  String[] @default([])
+
+  @@index([recipeId, position])
+  @@map("recipe_ingredients")
+}
+
+model RecipeStep {
+  id           String   @id @default(uuid()) @db.Uuid
+  recipeId     String
+  recipe       Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  position     Int
+  title        String
+  instruction  String
+  timeMin      Int?
+
+  @@index([recipeId, position])
+  @@map("recipe_steps")
+}
+
+model RecipeDiet {
+  recipeId String
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  diet     String  // "vegan", "vegetarian", "gluten-free", "dairy-free", "halal-friendly", "pescatarian"
+
+  @@id([recipeId, diet])
+  @@index([diet])
+  @@map("recipe_diets")
+}
+
+model RecipeMood {
+  recipeId String
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  mood     String  // "quick", "comfort", "festive", "wow", "spicy", "street", "healthy"
+
+  @@id([recipeId, mood])
+  @@index([mood])
+  @@map("recipe_moods")
+}
+
+model RecipeAllergen {
+  recipeId String
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  allergen String  // "gluten", "lactose", "œufs", "soja", ...
+
+  @@id([recipeId, allergen])
+  @@index([allergen])
+  @@map("recipe_allergens")
+}
+
+// ───────────────────────────────────────────────────────────
+//  SHOPS (NYC, ~30 of them)
+// ───────────────────────────────────────────────────────────
+
+model Shop {
+  id            String   @id  // slug for curated, google_place_id for discovered
+  name          String
+  address       String
+  neighborhood  String?
+  borough       String?
+  lat           Float?
+  lng           Float?
+  type          String?
+  hours         String?
+  phone         String?
+  website       String?
+  description   String?
+  imageUrl      String?
+  gradient      String?
+  authScore     Int      @default(80)
+  priceLevel    String   @db.VarChar(8) @default("$$")
+
+  // ─── v1.7 — geo-discovery fields ───────────────────────
+  source           ShopSource @default(CURATED)
+  googlePlaceId    String?    @unique
+  rating           Float?      // Google rating (0-5)
+  ratingCount      Int?        // user_ratings_total
+  photoRef         String?     // Google photo reference (use to fetch image)
+  hoursJson        Json?       // Google opening_hours.weekday_text + periods
+  googleTypes      String[]    @default([])  // ["grocery_or_supermarket", "food"]
+  inferredCuisines String[]    @default([])  // ["korean", "japanese"] inferred via AI
+  lastFetchedAt    DateTime?  @db.Timestamptz
+  expiresAt        DateTime?  @db.Timestamptz  // for cache invalidation
+
+  createdAt     DateTime @default(now()) @db.Timestamptz
+  updatedAt     DateTime @updatedAt @db.Timestamptz
+
+  tags             ShopTag[]
+  ingredients      ShopIngredient[]
+  cartItems        CartItem[]
+  ingredientChecks IngredientCheck[]
+  inferredAvail    InferredAvailability[]
+
+  @@index([neighborhood])
+  @@index([lat, lng])
+  @@index([expiresAt])
+  @@map("shops")
+}
+
+enum ShopSource {
+  CURATED         // hand-picked NYC shops in the seed data
+  GOOGLE          // discovered via Google Places API
+  USER_SUBMITTED  // future: users add shops themselves
+}
+
+// ─── Crowdsourced ingredient availability ─────────────────
+// "Tristan a trouvé du tamarin à Sahadi's il y a 2h"
+model IngredientCheck {
+  id            String   @id @default(uuid()) @db.Uuid
+  shopId        String
+  shop          Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  ingredientKey String   // normalized lowercase ("tamarin", "yuzu", "gochujang")
+  userId        String   @db.Uuid
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  found         Boolean  // true = trouvé, false = pas en stock
+  note          String?  // optional ("rayon 3, dernière étagère")
+  createdAt     DateTime @default(now()) @db.Timestamptz
+
+  @@index([shopId, ingredientKey])
+  @@index([ingredientKey, createdAt(sort: Desc)])
+  @@index([userId])
+  @@map("ingredient_checks")
+}
+
+// ─── AI-inferred ingredient probability (cached) ──────────
+// "Probability Sahadi's carries tahini = 0.98 (per Claude)"
+model InferredAvailability {
+  shopId        String
+  shop          Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  ingredientKey String
+  probability   Float     // 0.0-1.0
+  inferredBy    String    // "gpt-4o-mini" / "claude-sonnet-4.5"
+  createdAt     DateTime @default(now()) @db.Timestamptz
+  expiresAt     DateTime @db.Timestamptz   // re-check every 90 days
+
+  @@id([shopId, ingredientKey])
+  @@index([ingredientKey])
+  @@map("inferred_availability")
+}
+
+model ShopTag {
+  shopId String
+  shop   Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  tag    String  // matches RecipeIngredient.tags ("se-asian", "butcher", "pantry"...)
+
+  @@id([shopId, tag])
+  @@index([tag])
+  @@map("shop_tags")
+}
+
+// Free-text ingredient keywords this shop is known to carry
+model ShopIngredient {
+  shopId    String
+  shop      Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  keyword   String  // normalized lowercase
+
+  @@id([shopId, keyword])
+  @@index([keyword])
+  @@map("shop_ingredients")
+}
+
+// ───────────────────────────────────────────────────────────
+//  USER-OWNED DATA (favorites, cart, pantry, reviews)
+// ───────────────────────────────────────────────────────────
+
+model Favorite {
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipeId  String
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  @@id([userId, recipeId])
+  @@index([userId])
+  @@map("favorites")
+}
+
+model CartItem {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @db.Uuid
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ingredientName String
+  qty            Float?
+  unit           String?
+  recipeId       String?
+  recipe         Recipe?  @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  shopId         String?
+  shop           Shop?    @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  checked        Boolean  @default(false)
+  createdAt      DateTime @default(now()) @db.Timestamptz
+
+  @@index([userId])
+  @@map("cart_items")
+}
+
+model PantryItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String   // normalized lowercase ("tomate", "riz basmati")
+  source    String   @default("manual")  // "manual" | "scan" (from photo) | "import"
+  addedAt   DateTime @default(now()) @db.Timestamptz
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("pantry_items")
+}
+
+model Review {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipeId  String
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  rating    Int      // 1-5
+  comment   String?
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  @@unique([userId, recipeId])  // One review per recipe per user
+  @@index([recipeId])
+  @@map("reviews")
+}
+
+// ───────────────────────────────────────────────────────────
+//  AUDIT / RATE LIMITING (lightweight)
+// ───────────────────────────────────────────────────────────
+
+// ───────────────────────────────────────────────────────────
+//  MEAL PLANNER (calendrier de recettes)
+// ───────────────────────────────────────────────────────────
+
+model MealPlan {
+  id        String     @id @default(uuid()) @db.Uuid
+  userId    String     @db.Uuid
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipeId  String
+  recipe    Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  date      DateTime   @db.Date  // just the date (no time)
+  slot      MealSlot   @default(DINNER)
+  servings  Int        @default(2)
+  notes     String?
+  status    MealStatus @default(PLANNED)
+  // Order within a slot (allows multiple recipes per slot, e.g. starter + main)
+  position  Int        @default(0)
+  createdAt DateTime   @default(now()) @db.Timestamptz
+  updatedAt DateTime   @updatedAt @db.Timestamptz
+
+  @@index([userId, date])
+  @@index([userId, status])
+  @@index([userId, date, slot])
+  @@map("meal_plans")
+}
+
+enum MealSlot {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
+enum MealStatus {
+  PLANNED   // future, not cooked yet
+  COOKED    // user marked it done
+  SKIPPED   // user said "didn't make this"
+}
+
+// ───────────────────────────────────────────────────────────
+//  WEB PUSH SUBSCRIPTIONS
+// ───────────────────────────────────────────────────────────
+
+model PushSubscription {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now()) @db.Timestamptz
+  lastSentAt DateTime? @db.Timestamptz
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+model AuthEvent {
+  id          BigInt   @id @default(autoincrement())
+  email       String?  @db.Citext
+  userId      String?  @db.Uuid
+  kind        String   // "login_success", "login_failed", "signup", "logout", "password_reset_req"
+  ipHash      String?
+  userAgent   String?
+  createdAt   DateTime @default(now()) @db.Timestamptz
+
+  @@index([email, createdAt])
+  @@index([userId, createdAt])
+  @@map("auth_events")
+}

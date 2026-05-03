@@ -1,0 +1,19 @@
+# secrets
+web/app/scripts/.env
+**/.env
+
+# generated cache (intermediate state, recipe images themselves ARE committed below)
+web/app/data/images.cache.json
+
+# NOTE: web/app/assets/recipes/ is INTENTIONALLY committed (~51 MB).
+# These are the Pexels/Wikipedia photos the script downloaded — needed for the
+# all-in-one Railway deploy where the API also serves the SPA + assets.
+# To regenerate from scratch: delete the folder + rerun `node scripts/fetch-images.js`.
+
+# OS
+.DS_Store
+Thumbs.db
+
+# editor
+.vscode/
+.idea/
