@@ -1,19 +1,50 @@
-// AI-based ingredient × shop probability inference.
-// For shops where we have NO crowd data, we ask GPT-4o-mini:
+// AI-based ingredient × shop probability inference (Claude Opus 4.7).
+// For shops where we have NO crowd data, we ask Claude:
 // "Probability shop X carries ingredient Y given (shop type, name, location)?"
 //
 // Results cached 90 days in `inferred_availability` table.
+//
+// Optimizations:
+// - Prompt caching on the system prompt (stable across all calls → 90% cheaper after warmup)
+// - Structured outputs via JSON schema (guaranteed parse-able)
+// - effort: 'low' (this is a classification task — Opus 4.7's extra thinking adds nothing here)
 import { prisma } from '../db.js';
+import { anthropic, isConfigured as anthropicConfigured, DEFAULT_MODEL } from './anthropic.js';
 
-const KEY = process.env.OPENAI_API_KEY;
-const MODEL = 'gpt-4o-mini';
 const TTL_DAYS = 90;
+const MODEL_TAG = DEFAULT_MODEL;  // for traceability in DB rows
 
-export function isConfigured() { return !!KEY; }
+export function isConfigured() { return anthropicConfigured(); }
 
 function expiresAt() {
   return new Date(Date.now() + TTL_DAYS * 24 * 60 * 60 * 1000);
 }
+
+// Stable system prompt — cached across requests.
+const SYSTEM_PROMPT = `You are an expert in NYC ethnic groceries and specialty food shops.
+
+Given a shop's profile (name, address, neighborhood, cuisine tags, categories), estimate the probability (0.0 to 1.0) that the shop carries each requested ingredient on a typical day.
+
+Use these heuristics:
+- Mainstream items at supermarkets: 0.95
+- Common ingredients of the shop's cuisine specialty: 0.85-0.95
+- Adjacent cuisines (e.g. Korean shop carrying Japanese basics): 0.5-0.7
+- Rare specialty ingredients of OTHER cuisines: 0.05-0.2
+- Unknown / unclear specialty match: 0.3
+
+Respond with ONLY valid JSON matching the requested schema. No commentary, no markdown.`;
+
+const RESPONSE_SCHEMA = {
+  type: 'object',
+  properties: {
+    probabilities: {
+      type: 'object',
+      additionalProperties: { type: 'number', minimum: 0, maximum: 1 },
+    },
+  },
+  required: ['probabilities'],
+  additionalProperties: false,
+};
 
 /**
  * Infer probabilities for a list of ingredients at a single shop.
@@ -24,7 +55,7 @@ function expiresAt() {
  * @returns {object} { [ingKey]: probability 0-1 }
  */
 export async function inferShopAvailability(shop, ingredientKeys) {
-  if (!KEY) return {};
+  if (!anthropicConfigured()) return {};
   if (!ingredientKeys || ingredientKeys.length === 0) return {};
 
   const keys = [...new Set(ingredientKeys.map(k => k.toLowerCase()))];
@@ -42,7 +73,7 @@ export async function inferShopAvailability(shop, ingredientKeys) {
 
   if (missing.length === 0) return cached;
 
-  // Build prompt
+  // Build user prompt (volatile — not cached)
   const tags = (shop.tags || []).map(t => t.tag || t);
   const cuisines = shop.inferredCuisines || [];
   const types = shop.googleTypes || (shop.type ? [shop.type] : []);
@@ -56,52 +87,47 @@ export async function inferShopAvailability(shop, ingredientKeys) {
     shop.description ? `Description: ${shop.description.slice(0, 200)}` : null,
   ].filter(Boolean).join('\n');
 
-  const prompt = `You are an expert in NYC ethnic groceries and specialty food shops.
+  const userPrompt = `Shop:\n${shopDesc}\n\nIngredients to evaluate:\n${missing.map(k => `- ${k}`).join('\n')}`;
 
-Given this shop:
-${shopDesc}
-
-For EACH of the following ingredients, estimate the probability (0.0 to 1.0) that this shop carries it on a typical day. Use these heuristics:
-- Mainstream items at supermarkets: 0.95
-- Common ingredients of the shop's cuisine specialty: 0.85-0.95
-- Adjacent cuisines (e.g. Korean shop carrying Japanese basics): 0.5-0.7
-- Rare specialty ingredients of OTHER cuisines: 0.05-0.2
-- Unknown / unclear specialty match: 0.3
-
-Ingredients:
-${missing.map(k => `- ${k}`).join('\n')}
-
-Respond with JSON only, no commentary, in this exact format:
-{"probabilities": {"ingredient_name": 0.85, ...}}`;
-
-  let res;
+  let response;
   try {
-    res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + KEY },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [{ role: 'user', content: prompt }],
-        response_format: { type: 'json_object' },
-        max_tokens: 800,
-      }),
+    response = await anthropic.messages.create({
+      model: DEFAULT_MODEL,
+      max_tokens: 1024,
+      system: [
+        {
+          type: 'text',
+          text: SYSTEM_PROMPT,
+          cache_control: { type: 'ephemeral' },
+        },
+      ],
+      output_config: {
+        format: {
+          type: 'json_schema',
+          schema: RESPONSE_SCHEMA,
+          name: 'shop_ingredient_probabilities',
+        },
+        effort: 'low',  // simple classification — no need for high-effort reasoning
+      },
+      messages: [{ role: 'user', content: userPrompt }],
     });
   } catch (e) {
-    console.warn('[ai-inference] network error:', e.message);
+    console.warn('[ai-inference] Anthropic call failed:', e.message);
     return cached;
   }
 
-  if (!res.ok) {
-    const txt = await res.text().catch(() => '');
-    console.warn(`[ai-inference] HTTP ${res.status} ${txt.slice(0, 200)}`);
+  // Extract text from response (content is an array of typed blocks)
+  const textBlock = (response.content || []).find(b => b.type === 'text');
+  if (!textBlock) {
+    console.warn('[ai-inference] no text block in response');
     return cached;
   }
 
   let parsed;
   try {
-    const json = await res.json();
-    parsed = JSON.parse(json.choices?.[0]?.message?.content || '{}');
+    parsed = JSON.parse(textBlock.text);
   } catch {
+    console.warn('[ai-inference] JSON parse failed');
     return cached;
   }
 
@@ -117,7 +143,7 @@ Respond with JSON only, no commentary, in this exact format:
       shopId: shop.id,
       ingredientKey: k,
       probability: clamped,
-      inferredBy: MODEL,
+      inferredBy: MODEL_TAG,
       expiresAt: exp,
     });
   }
@@ -128,7 +154,12 @@ Respond with JSON only, no commentary, in this exact format:
         prisma.inferredAvailability.upsert({
           where: { shopId_ingredientKey: { shopId: inf.shopId, ingredientKey: inf.ingredientKey } },
           create: inf,
-          update: { probability: inf.probability, inferredBy: inf.inferredBy, expiresAt: inf.expiresAt, createdAt: new Date() },
+          update: {
+            probability: inf.probability,
+            inferredBy: inf.inferredBy,
+            expiresAt: inf.expiresAt,
+            createdAt: new Date(),
+          },
         })
       )
     ).catch(e => console.warn('[ai-inference] save failed:', e.message));
@@ -137,7 +168,7 @@ Respond with JSON only, no commentary, in this exact format:
   return cached;
 }
 
-// Batch helper: infer for multiple shops in parallel (cap concurrency to be polite to OpenAI)
+// Batch helper: infer for multiple shops in parallel (cap concurrency to be polite to the API)
 export async function inferManyShops(shops, ingredientKeys, { concurrency = 3 } = {}) {
   const out = {};
   let i = 0;

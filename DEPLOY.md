@@ -142,7 +142,7 @@ Clique sur le service `eatrail` (PAS le service Postgres) :
 | `SESSION_SECRET` | génère une clé : `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` |
 | `IP_HASH_SALT` | autre clé générée pareil |
 | `NODE_ENV` | `production` |
-| `OPENAI_API_KEY` | ta clé OpenAI (pour le scan pantry + AI inference shops) — optionnel |
+| `ANTHROPIC_API_KEY` | ta clé Anthropic (scan pantry + AI inference shops) — optionnel mais recommandé. Get : https://console.anthropic.com/settings/keys |
 | `GOOGLE_PLACES_API_KEY` | ta clé Google Places (pour découvrir les vrais magasins autour du user) — optionnel |
 
 ⚠️ **Pas besoin de `ALLOWED_ORIGINS`** (le site et l'API sont sur la même URL).
