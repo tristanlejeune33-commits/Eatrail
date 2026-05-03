@@ -151,7 +151,37 @@ window.eat = window.eat || {};
 
   // ── Session ──────────────────────────────────────────────
   /** Compte connecté (lecture safe), null sinon. */
+  // v1.8 — In-memory cache of API user (avoids sync→async mismatch in views)
+  let _apiUser = null;
+  function setApiUser(u) {
+    if (!u) { _apiUser = null; return; }
+    _apiUser = {
+      id: u.id,
+      email: u.email,
+      name: u.name,
+      avatar: u.avatarColor || (eat.AVATARS && eat.AVATARS[0]) || '🧑‍🍳',
+      createdAt: u.createdAt,
+      lastLoginAt: u.lastLoginAt,
+    };
+  }
+  // Listen to api-client init: when it pings /me at startup, capture the user
+  if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Wait a tick for api-client to finish init()
+      setTimeout(async () => {
+        if (eat.api && eat.api.currentUser) {
+          setApiUser(eat.api.currentUser);
+          document.dispatchEvent(new CustomEvent('eat:auth:change', { detail: { type: 'restore', account: eat.auth.current() } }));
+        }
+      }, 200);
+    });
+  }
+  eat.auth.setApiUser = setApiUser;  // exposed for re-use elsewhere
+
   eat.auth.current = function () {
+    // PRIORITY 1: API-backed user (logged in via Postgres)
+    if (_apiUser) return _apiUser;
+    // PRIORITY 2: localStorage session (guest mode / API offline)
     const session = readSession();
     if (!session) return null;
     const accounts = readAccounts();
@@ -160,7 +190,6 @@ window.eat = window.eat || {};
       clearSession();
       return null;
     }
-    // Renvoyer une copie sans le hash/salt
     return {
       id: acc.id,
       email: acc.email,
@@ -193,10 +222,32 @@ window.eat = window.eat || {};
 
     if (!name || name.length < 2) return { ok: false, error: 'name' };
     if (!RX_EMAIL.test(email)) return { ok: false, error: 'email-format' };
-    if (eat.auth.emailExists(email)) return { ok: false, error: 'email-taken' };
     const strength = eat.auth.passwordStrength(password);
     if (!strength.isAcceptable) return { ok: false, error: 'password-weak' };
 
+    // v1.8 — Try API first (if online)
+    if (eat.api && eat.api.isOnline) {
+      try {
+        const result = await eat.api.auth.signup(email, password, name, avatar);
+        setApiUser(result.user);
+        eat.api.currentUser = result.user;
+
+        // Migrate any existing localStorage data (guest favorites/cart/pantry) to the new account
+        await migrateGuestDataToApi().catch(e => console.warn('migration failed:', e));
+
+        document.dispatchEvent(new CustomEvent('eat:auth:change', { detail: { type: 'signup', account: eat.auth.current() } }));
+        return { ok: true, account: eat.auth.current() };
+      } catch (err) {
+        if (err.code === 'email_taken') return { ok: false, error: 'email-taken' };
+        if (err.code === 'invalid_input') return { ok: false, error: 'password-weak' };
+        if (err.code === 'too_many_requests') return { ok: false, error: 'rate-limit' };
+        // Network/server error → fall through to localStorage fallback
+        console.warn('API signup failed, falling back to localStorage:', err.message);
+      }
+    }
+
+    // FALLBACK: localStorage signup (guest mode / API offline)
+    if (eat.auth.emailExists(email)) return { ok: false, error: 'email-taken' };
     const salt = randomSalt();
     const hash = await hashPassword(password, salt);
     const now = Date.now();
@@ -209,13 +260,8 @@ window.eat = window.eat || {};
     const accounts = readAccounts();
     accounts[email] = account;
     writeAccounts(accounts);
-
-    // Session immédiate (signup = login)
     writeSession({ id: account.id, email: account.email, at: now }, true);
-
-    // Notify other modules (utils.js scoped storage helpers s'y abonneront)
     document.dispatchEvent(new CustomEvent('eat:auth:change', { detail: { type: 'signup', account } }));
-
     return { ok: true, account: eat.auth.current() };
   };
 
@@ -228,6 +274,28 @@ window.eat = window.eat || {};
   eat.auth.login = async function (email, password, remember) {
     email = normEmail(email);
     if (!RX_EMAIL.test(email)) return { ok: false, error: 'email-format' };
+
+    // v1.8 — Try API first
+    if (eat.api && eat.api.isOnline) {
+      try {
+        const result = await eat.api.auth.login(email, password);
+        setApiUser(result.user);
+        eat.api.currentUser = result.user;
+
+        // Pull data from API into localStorage cache + push any guest data to API
+        await syncDataAfterLogin().catch(e => console.warn('sync failed:', e));
+
+        document.dispatchEvent(new CustomEvent('eat:auth:change', { detail: { type: 'login', account: eat.auth.current() } }));
+        return { ok: true, account: eat.auth.current() };
+      } catch (err) {
+        if (err.code === 'invalid_credentials') return { ok: false, error: 'wrong-password' };
+        if (err.code === 'too_many_requests') return { ok: false, error: 'rate-limit' };
+        // Network → fall through to localStorage
+        console.warn('API login failed, falling back to localStorage:', err.message);
+      }
+    }
+
+    // FALLBACK: localStorage login
     const accounts = readAccounts();
     const acc = accounts[email];
     if (!acc) return { ok: false, error: 'no-account' };
@@ -245,11 +313,110 @@ window.eat = window.eat || {};
   };
 
   // ── Logout ───────────────────────────────────────────────
-  eat.auth.logout = function () {
+  eat.auth.logout = async function () {
     const prev = eat.auth.current();
+
+    // v1.8 — Tell API to revoke session (cookie cleared by server)
+    if (eat.api && eat.api.isOnline && _apiUser) {
+      try { await eat.api.auth.logout(); } catch {}
+    }
+    setApiUser(null);
+    if (eat.api) eat.api.currentUser = null;
+
     clearSession();
     document.dispatchEvent(new CustomEvent('eat:auth:change', { detail: { type: 'logout', account: prev } }));
   };
+
+  // ─── v1.8 — Sync helpers (data migration & background pull) ──
+  async function migrateGuestDataToApi() {
+    // Push guest localStorage data (favorites, cart, pantry) to the user's account.
+    // Used right after signup or first API-login.
+    if (!eat.api || !eat.api.isOnline) return;
+    const u = eat.api.currentUser;
+    if (!u) return;
+
+    // Favorites
+    try {
+      const saved = JSON.parse(localStorage.getItem('eatrail.v1.saved.legacy') || localStorage.getItem(`eatrail.v1.saved.${u.id}`) || '[]');
+      // Try other common keys (the localStorage system used per-account scoped keys)
+      const allKeys = Object.keys(localStorage).filter(k => k.startsWith('eatrail.v1.saved.'));
+      const merged = new Set(saved);
+      for (const k of allKeys) {
+        try {
+          const arr = JSON.parse(localStorage.getItem(k) || '[]');
+          arr.forEach(id => merged.add(id));
+        } catch {}
+      }
+      const all = [...merged].filter(Boolean);
+      if (all.length > 0) await eat.api.favorites.import(all);
+    } catch (e) { console.warn('migrate favorites:', e); }
+
+    // Pantry (global, not per-account)
+    try {
+      const pantry = JSON.parse(localStorage.getItem('eatrail.v1.pantry') || '[]');
+      if (Array.isArray(pantry) && pantry.length > 0) {
+        await eat.api.pantry.import(pantry);
+      }
+    } catch (e) { console.warn('migrate pantry:', e); }
+
+    // Cart (per-account scoped)
+    try {
+      const cartKeys = Object.keys(localStorage).filter(k => k.startsWith('eatrail.v1.cart.'));
+      for (const k of cartKeys) {
+        const cart = JSON.parse(localStorage.getItem(k) || '[]');
+        if (Array.isArray(cart) && cart.length > 0) {
+          const items = cart.map(c => ({
+            ingredientName: c.name || c.ingredientName || c.label || 'item',
+            qty: typeof c.qty === 'number' ? c.qty : null,
+            unit: c.unit || null,
+            recipeId: c.recipeId || c.recipe || null,
+            shopId: c.shopId || c.shop || null,
+            checked: !!c.checked,
+          }));
+          await eat.api.cart.import(items);
+        }
+      }
+    } catch (e) { console.warn('migrate cart:', e); }
+  }
+
+  async function syncDataAfterLogin() {
+    // After login, pull authoritative data from API → cache in localStorage.
+    if (!eat.api || !eat.api.isOnline) return;
+    const u = eat.api.currentUser;
+    if (!u) return;
+
+    // First push any guest data that wasn't in the account yet
+    await migrateGuestDataToApi().catch(() => {});
+
+    // Then pull authoritative state from API
+    try {
+      const favs = await eat.api.favorites.list();
+      const ids = (favs.items || []).map(f => f.recipeId);
+      localStorage.setItem(`eatrail.v1.saved.${u.id}`, JSON.stringify(ids));
+    } catch (e) { console.warn('pull favorites:', e); }
+
+    try {
+      const cart = await eat.api.cart.list();
+      const items = (cart.items || []).map(c => ({
+        id: c.id,
+        name: c.ingredientName,
+        qty: c.qty,
+        unit: c.unit,
+        recipeId: c.recipeId,
+        shopId: c.shopId,
+        checked: c.checked,
+      }));
+      localStorage.setItem(`eatrail.v1.cart.${u.id}`, JSON.stringify(items));
+    } catch (e) { console.warn('pull cart:', e); }
+
+    try {
+      const pantry = await eat.api.pantry.list();
+      const names = (pantry.items || []).map(p => p.name);
+      localStorage.setItem('eatrail.v1.pantry', JSON.stringify(names));
+    } catch (e) { console.warn('pull pantry:', e); }
+  }
+  eat.auth.syncDataAfterLogin = syncDataAfterLogin;
+  eat.auth.migrateGuestDataToApi = migrateGuestDataToApi;
 
   // ── Password recovery (mock) ─────────────────────────────
   /**

@@ -213,6 +213,10 @@ window.eat = window.eat || {};
     const idx = list.indexOf(id);
     if (idx >= 0) list.splice(idx, 1); else list.push(id);
     safeWrite(LS_SAVED, list);
+    // v1.8 — fire-and-forget API sync if logged in
+    if (eat.api && eat.api.currentUser) {
+      eat.api.favorites.toggle(id).catch(e => console.warn('[sync] favorites toggle:', e.message));
+    }
     return idx < 0; // true si ajouté
   };
 
@@ -223,10 +227,18 @@ window.eat = window.eat || {};
     const list = eat.pantry();
     if (!list.includes(norm)) list.push(norm);
     safeWrite(LS_PANTRY, list);
+    // v1.8 — fire-and-forget API sync
+    if (eat.api && eat.api.currentUser) {
+      eat.api.pantry.add(norm).catch(e => console.warn('[sync] pantry add:', e.message));
+    }
   };
   eat.pantryRemove = function (item) {
     const list = eat.pantry().filter(x => x !== item);
     safeWrite(LS_PANTRY, list);
+    // v1.8 — fire-and-forget API sync
+    if (eat.api && eat.api.currentUser) {
+      eat.api.pantry.removeByName(String(item).toLowerCase()).catch(e => console.warn('[sync] pantry remove:', e.message));
+    }
   };
 
   // ── v1.7 — Meal planner (localStorage fallback + API sync) ──
@@ -712,6 +724,33 @@ window.eat = window.eat || {};
   }
   function writeCart(arr) {
     try { localStorage.setItem(scopedKey(LS_CART), JSON.stringify(arr)); } catch {}
+    // v1.8 — debounced full snapshot sync to API
+    scheduleCartSync();
+  }
+
+  // Debounced full cart sync (1 push per 600ms after last mutation)
+  let _cartSyncTimer = null;
+  function scheduleCartSync() {
+    if (!eat.api || !eat.api.currentUser) return;
+    clearTimeout(_cartSyncTimer);
+    _cartSyncTimer = setTimeout(async () => {
+      try {
+        const local = readCart();
+        // Replace the entire API cart with the local snapshot
+        await eat.api.cart.clear();
+        if (local.length > 0) {
+          const items = local.map(c => ({
+            ingredientName: c.name,
+            qty: typeof c.qty === 'number' ? c.qty : null,
+            unit: c.unit,
+            recipeId: c.recipeId,
+            shopId: c.shopId,
+            checked: !!c.checked,
+          }));
+          await eat.api.cart.import(items);
+        }
+      } catch (e) { console.warn('[sync] cart snapshot:', e.message); }
+    }, 600);
   }
 
   eat.cart = () => readCart();
