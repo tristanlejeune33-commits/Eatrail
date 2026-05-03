@@ -162,15 +162,24 @@ export async function discoverNearbyShops({ lat, lng, radiusMiles = 1.5, limit =
 
   // 2. If Google is configured AND we have few cached results, query Google
   if (isConfigured() && nearby.length < 10) {
+    console.log(`[google-places] cached=${nearby.length} → querying Google for lat=${lat} lng=${lng} radius=${radiusMiles}mi`);
     try {
       const results = await googleNearbySearch({
         lat, lng,
         radiusMeters: Math.round(radiusMiles * 1609),
         type: 'grocery_or_supermarket',
       });
+      console.log(`[google-places] Google returned ${results.length} results`);
       // Upsert each result; capped to 20 to stay frugal on quota
       const limited = results.slice(0, 20);
-      await Promise.all(limited.map(p => upsertShopFromGoogle(p).catch(() => null)));
+      const upsertResults = await Promise.all(
+        limited.map(p => upsertShopFromGoogle(p).catch(e => {
+          console.warn(`[google-places] upsert failed for ${p.place_id}:`, e.message);
+          return null;
+        }))
+      );
+      const successCount = upsertResults.filter(Boolean).length;
+      console.log(`[google-places] upserted ${successCount}/${limited.length} shops`);
 
       // Re-query cache (now enriched)
       const refreshed = await prisma.shop.findMany({
@@ -184,9 +193,14 @@ export async function discoverNearbyShops({ lat, lng, radiusMiles = 1.5, limit =
         .map(s => ({ ...s, distMiles: haversineMiles(lat, lng, s.lat, s.lng) }))
         .filter(s => s.distMiles <= radiusMiles)
         .sort((a, b) => a.distMiles - b.distMiles);
+      console.log(`[google-places] post-discovery total=${nearby.length}`);
     } catch (e) {
-      console.warn('[google-places] discover failed:', e.message);
+      console.error('[google-places] discover FAILED:', e.message, e.stack?.split('\n')[1]);
     }
+  } else if (!isConfigured()) {
+    console.log('[google-places] skipped — GOOGLE_PLACES_API_KEY not set');
+  } else {
+    console.log(`[google-places] skipped — already have ${nearby.length} cached shops (≥10)`);
   }
 
   return nearby.slice(0, limit);
