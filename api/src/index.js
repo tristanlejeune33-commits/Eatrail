@@ -57,7 +57,9 @@ app.use(cookieParser());
 app.use(loadSession);
 
 // ─── Health & root ─────────────────────────────────────────
-app.get('/', (_req, res) => res.json({ name: 'eatrail-api', version: '0.1.0', status: 'ok' }));
+// Note: GET / is handled by the SPA static fallback below (when SERVE_STATIC=true).
+// If SERVE_STATIC=false (API-only deploy), the 404 handler at the bottom catches it.
+app.get('/api', (_req, res) => res.json({ name: 'eatrail-api', version: '0.1.0', status: 'ok' }));
 app.get('/health', async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
