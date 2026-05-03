@@ -91,8 +91,30 @@ app.use('/api/submissions', submissionsRoutes);
 // Set SERVE_STATIC=false in env to disable (e.g. if you split frontend onto Vercel).
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const SPA_DIR = path.resolve(__dirname, '..', '..', 'web', 'app');
-const SERVE_STATIC = process.env.SERVE_STATIC !== 'false' && fs.existsSync(SPA_DIR);
+
+// Try several candidate paths (handles different Railway/Vercel/Docker layouts).
+function findSpaDir() {
+  const candidates = [
+    process.env.SPA_DIR,                                       // explicit override via env
+    path.resolve(__dirname, '..', '..', 'web', 'app'),         // monorepo: api/src/ → ../../web/app
+    path.resolve(__dirname, '..', 'web', 'app'),               // api/src/ if web copied into api/
+    path.resolve(process.cwd(), 'web', 'app'),                 // cwd-relative
+    path.resolve(process.cwd(), '..', 'web', 'app'),           // cwd is api/, web at parent
+    '/app/web/app',                                            // Railway/Heroku standard mount
+  ].filter(Boolean);
+
+  for (const p of candidates) {
+    if (fs.existsSync(path.join(p, 'index.html'))) return p;
+  }
+  return null;
+}
+
+const SPA_DIR = findSpaDir();
+const SERVE_STATIC = process.env.SERVE_STATIC !== 'false' && SPA_DIR;
+
+console.log(`[startup] cwd=${process.cwd()}`);
+console.log(`[startup] __dirname=${__dirname}`);
+console.log(`[startup] SPA_DIR resolved to: ${SPA_DIR || '(NOT FOUND — API-only mode)'}`);
 
 if (SERVE_STATIC) {
   console.log(`Serving SPA from ${SPA_DIR}`);
