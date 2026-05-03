@@ -1,0 +1,16 @@
+{
+  "name": "eatrail-monorepo",
+  "version": "1.8.0",
+  "private": true,
+  "description": "eatrail · monorepo wrapper that delegates build/start to api/. Use this when deploying on Railway with Root Directory left empty so the whole repo (api + web/app + marketing) is shipped together.",
+  "scripts": {
+    "postinstall": "cd api && npm install --omit=dev=false",
+    "build": "cd api && npx prisma generate",
+    "start": "cd api && npx prisma migrate deploy && node src/index.js",
+    "dev": "cd api && npm run dev",
+    "seed": "cd api && npm run seed"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
