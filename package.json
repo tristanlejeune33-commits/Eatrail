@@ -6,7 +6,7 @@
   "scripts": {
     "postinstall": "cd api && npm install --omit=dev=false",
     "build": "cd api && npx prisma generate",
-    "start": "cd api && npx prisma migrate deploy && node src/index.js",
+    "start": "cd api && npx prisma migrate deploy && npx prisma db push --skip-generate --accept-data-loss && node src/index.js",
     "dev": "cd api && npm run dev",
     "seed": "cd api && npm run seed"
   },

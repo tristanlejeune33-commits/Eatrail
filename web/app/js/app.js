@@ -313,11 +313,13 @@
         btn.textContent = `✓ ${r.created} dîners ajoutés`;
         setTimeout(() => render(), 700);
       } catch (err) {
+        const detail = err && err.message ? ` — ${err.message}` : '';
         const msg =
           err.code === 'ai_not_configured' ? 'IA non configurée côté serveur.' :
           err.code === 'not_enough_candidates' ? 'Pas assez de recettes correspondent à tes préférences. Élargis tes cuisines / réduis les contraintes.' :
-          err.code === 'ai_failed' ? 'Claude a échoué — réessaie dans 1 min.' :
-          err.message || 'Erreur inconnue';
+          err.code === 'ai_failed' ? 'Claude a échoué' + detail :
+          (err.message || 'Erreur inconnue');
+        console.error('[ai-fill] failed:', err.code, err.status, err.message);
         alert('Erreur : ' + msg);
         btn.disabled = false;
         btn.textContent = '✨ Remplis ma semaine';

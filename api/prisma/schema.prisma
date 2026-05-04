@@ -43,8 +43,44 @@ model User {
   ingredientChecks IngredientCheck[]
   mealPlans        MealPlan[]
   recipeSubmissions UserRecipeSubmission[]
+  collections      Collection[]
 
   @@map("users")
+}
+
+// ───────────────────────────────────────────────────────────
+//  COLLECTIONS / COOKBOOKS — user groups recipes into named buckets
+// ───────────────────────────────────────────────────────────
+
+model Collection {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String   @db.VarChar(80)
+  description String?  @db.VarChar(500)
+  emoji       String?  @db.VarChar(8)
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamptz
+
+  recipes     CollectionRecipe[]
+
+  @@index([userId])
+  @@map("collections")
+}
+
+model CollectionRecipe {
+  collectionId String     @db.Uuid
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  recipeId     String
+  recipe       Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  addedAt      DateTime   @default(now()) @db.Timestamptz
+  position     Int        @default(0)
+
+  @@id([collectionId, recipeId])
+  @@index([collectionId, position])
+  @@index([recipeId])
+  @@map("collection_recipes")
 }
 
 // ───────────────────────────────────────────────────────────
@@ -178,6 +214,7 @@ model Recipe {
   cartItems       CartItem[]
   reviews         Review[]
   mealPlans       MealPlan[]
+  collections     CollectionRecipe[]
 
   @@index([country])
   @@index([category])

@@ -35,28 +35,28 @@ Soft preferences (optimize for these):
 Respond with ONLY valid JSON matching the requested schema. No commentary, no markdown.
 For "rationale", write ONE short sentence in French (max 80 chars) explaining why this recipe fits this slot.`;
 
+// Lean schema: keep validation light at the schema level (Anthropic's strict
+// JSON mode rejects some richer constructs like additionalProperties:false
+// or enum-of-one), and let the repair pass below handle counts, dedup, and
+// invalid recipeIds.
 const RESPONSE_SCHEMA = {
   type: 'object',
   properties: {
     selections: {
       type: 'array',
-      minItems: 7,
-      maxItems: 7,
       items: {
         type: 'object',
         properties: {
-          dayOffset: { type: 'integer', minimum: 0, maximum: 6 },
-          slot: { type: 'string', enum: ['DINNER'] },
+          dayOffset: { type: 'integer' },
+          slot: { type: 'string' },
           recipeId: { type: 'string' },
-          rationale: { type: 'string', maxLength: 120 },
+          rationale: { type: 'string' },
         },
-        required: ['dayOffset', 'slot', 'recipeId'],
-        additionalProperties: false,
+        required: ['dayOffset', 'recipeId'],
       },
     },
   },
   required: ['selections'],
-  additionalProperties: false,
 };
 
 /**
@@ -159,18 +159,28 @@ ${JSON.stringify(candidateList, null, 0)}
 
 Pick exactly 7 dinners — one per dayOffset 0 through 6 — that respect hard rules and optimize the soft preferences. Return ONLY the JSON object matching the schema.`;
 
-  const response = await anthropic.messages.create({
-    model: DEFAULT_MODEL,
-    max_tokens: 4096,
-    system: [
-      { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
-    ],
-    output_config: {
-      format: { type: 'json_schema', schema: RESPONSE_SCHEMA },
-      effort: 'medium',
-    },
-    messages: [{ role: 'user', content: userPrompt }],
-  });
+  console.log(`[meal-plan-ai] generating week starting ${startDate} from ${candidates.length} candidates`);
+
+  let response;
+  try {
+    response = await anthropic.messages.create({
+      model: DEFAULT_MODEL,
+      max_tokens: 4096,
+      system: [
+        { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
+      ],
+      output_config: {
+        format: { type: 'json_schema', schema: RESPONSE_SCHEMA },
+        effort: 'medium',
+      },
+      messages: [{ role: 'user', content: userPrompt }],
+    });
+  } catch (e) {
+    console.error('[meal-plan-ai] Anthropic call failed:',
+      'status=', e.status, 'name=', e.name,
+      'message=', (e.message || '').slice(0, 400));
+    throw new Error('anthropic_call_failed: ' + (e.message || '').slice(0, 200));
+  }
 
   // With output_config.format, the SDK puts the parsed JSON in `parsed_output`.
   // Fall back to a raw text block (legacy / models that don't pre-parse).
@@ -186,24 +196,73 @@ Pick exactly 7 dinners — one per dayOffset 0 through 6 — that respect hard r
   if (!parsed) {
     console.error('[meal-plan-ai] no parseable response. blocks:',
       (response.content || []).map(b => b.type).join(','),
-      'parsed_output:', !!response.parsed_output);
+      'parsed_output:', !!response.parsed_output,
+      'stop_reason:', response.stop_reason);
     throw new Error('no_response');
   }
 
-  const selections = parsed.selections || [];
-  if (selections.length !== 7) throw new Error('wrong_count');
+  let selections = parsed.selections || [];
+  console.log(`[meal-plan-ai] received ${selections.length} selections from Claude`);
 
-  // Sanity-check: every recipeId must exist in the candidate pool.
+  // Repair pass: be tolerant of common Claude mistakes instead of failing the
+  // whole request. The user clicked one button — they want a week back.
   const validIds = new Set(candidates.map(c => c.id));
-  for (const s of selections) {
-    if (!validIds.has(s.recipeId)) {
-      throw new Error('invalid_recipe_id_' + s.recipeId);
+
+  // 1) Drop selections with invalid/missing recipeIds and log which ones
+  const invalidIds = [];
+  selections = selections.filter(s => {
+    if (!s || typeof s.recipeId !== 'string' || !validIds.has(s.recipeId)) {
+      invalidIds.push(s?.recipeId);
+      return false;
+    }
+    return true;
+  });
+  if (invalidIds.length) {
+    console.warn(`[meal-plan-ai] dropped ${invalidIds.length} invalid recipeIds:`, invalidIds.slice(0, 5));
+  }
+
+  // 2) Dedup by dayOffset (keep first), then by recipeId (avoid same recipe twice)
+  const seenDays = new Set();
+  const seenRecipes = new Set();
+  selections = selections.filter(s => {
+    if (typeof s.dayOffset !== 'number' || s.dayOffset < 0 || s.dayOffset > 6) return false;
+    if (seenDays.has(s.dayOffset)) return false;
+    if (seenRecipes.has(s.recipeId)) return false;
+    seenDays.add(s.dayOffset);
+    seenRecipes.add(s.recipeId);
+    return true;
+  });
+
+  // 3) Fill missing days with random unused candidates so we always return 7
+  if (selections.length < 7) {
+    const usedRecipes = new Set(selections.map(s => s.recipeId));
+    const pool = candidates.filter(c => !usedRecipes.has(c.id));
+    // Shuffle to avoid always picking the same fillers
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    let pi = 0;
+    for (let day = 0; day <= 6; day++) {
+      if (seenDays.has(day)) continue;
+      if (pi >= pool.length) break;
+      const c = pool[pi++];
+      selections.push({
+        dayOffset: day,
+        slot: 'DINNER',
+        recipeId: c.id,
+        rationale: '✨ Suggestion équilibrée',
+      });
+      seenDays.add(day);
     }
   }
 
-  // Sanity-check: every dayOffset 0..6 used exactly once
-  const days = new Set(selections.map(s => s.dayOffset));
-  if (days.size !== 7) throw new Error('duplicate_day_offset');
+  if (selections.length !== 7) {
+    console.error(`[meal-plan-ai] could not assemble 7 dinners; got ${selections.length}, candidates=${candidates.length}`);
+    throw new Error('could_not_assemble_week');
+  }
 
-  return selections.sort((a, b) => a.dayOffset - b.dayOffset);
+  selections.sort((a, b) => a.dayOffset - b.dayOffset);
+  console.log(`[meal-plan-ai] returning ${selections.length} dinners (${invalidIds.length} repaired)`);
+  return selections;
 }
