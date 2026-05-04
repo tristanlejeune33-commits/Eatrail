@@ -742,7 +742,7 @@ window.eat = window.eat || {};
         <a href="${eat.routeUrl('recipe', [r.id])}" style="font-size:14px;color:var(--muted);">← retour à ${esc(r.title)}</a>
 
         <div class="trail-summary" style="margin-top:18px;">
-          <span class="page-eyebrow" style="color:var(--gold);">Trail Optimizer</span>
+          <span class="page-eyebrow" style="color:var(--gold);">Parcours optimisé</span>
           <h1 style="font-family:'Fraunces',serif;font-weight:800;font-size:clamp(28px,4vw,42px);line-height:1.05;margin-bottom:10px;">
             ${esc(r.title)} en ${trail.totalShops} arrêt${trail.totalShops > 1 ? 's' : ''}
           </h1>
@@ -912,7 +912,7 @@ window.eat = window.eat || {};
     if (trail && trail.stops && trail.stops.length > 0) {
       trailZone.innerHTML = `
         <div class="trail-banner" style="margin-bottom:18px;">
-          <div class="eyebrow">Trail optimisé</div>
+          <div class="eyebrow">Parcours optimisé</div>
           <h3>${trail.stops.length} magasin${trail.stops.length > 1 ? 's' : ''} pour ${trail.coveredCount}/${trail.totalCount} ingrédients.</h3>
           <div class="trail-meta">${trail.stops.map(s => esc(s.name)).join(' · ')}</div>
           ${trail.missing && trail.missing.length > 0
@@ -1130,7 +1130,7 @@ window.eat = window.eat || {};
     return `
       <div class="container page fade-in">
         <span class="page-eyebrow">Carte d'identité</span>
-        <h1 class="page-title">Ton <em>Flavor DNA</em></h1>
+        <h1 class="page-title">Ton <em>Identité culinaire</em></h1>
         <p class="page-lead">Ton profil culinaire, basé sur ce que tu cuisines, sauvegardes et notes.</p>
 
         <div id="flavor-dna-zone">
@@ -1150,7 +1150,7 @@ window.eat = window.eat || {};
     if (!eat.api?.currentUser) {
       zone.innerHTML = `
         <div class="empty" style="padding:60px 20px;text-align:center;">
-          <h3>Connecte-toi pour voir ton Flavor DNA</h3>
+          <h3>Connecte-toi pour voir ton identité culinaire</h3>
           <p style="color:var(--muted);margin:14px 0 22px;">Cette carte est unique à ton compte.</p>
           <a class="btn btn-primary" href="${eat.routeUrl('login')}">Se connecter</a>
         </div>
@@ -1179,7 +1179,7 @@ window.eat = window.eat || {};
         <div class="dna-header">
           <div class="dna-stamp">${esc(a.emoji)}</div>
           <div class="dna-meta">
-            <div class="dna-eyebrow">eatrail · Flavor DNA</div>
+            <div class="dna-eyebrow">eatrail · Identité culinaire</div>
             <div class="dna-name">${esc(u.name || '')}</div>
             <div class="dna-archetype">${esc(a.label)}</div>
           </div>
@@ -1240,7 +1240,7 @@ window.eat = window.eat || {};
       </div>
 
       <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:14px;">
-        Ton Flavor DNA est mis à jour chaque mois — façon Spotify Wrapped.
+        Ton identité culinaire est mise à jour chaque mois — façon Spotify Wrapped.
       </p>
     `;
   }
@@ -1521,7 +1521,7 @@ window.eat = window.eat || {};
       <div class="container page fade-in">
         <span class="page-eyebrow">Panier de courses</span>
         <h1 class="page-title">Ma liste de courses</h1>
-        <p class="page-lead">${cart.length} item${cart.length > 1 ? 's' : ''} regroupé${cart.length > 1 ? 's' : ''} par magasin via le Trail Optimizer. Coche en faisant tes courses.</p>
+        <p class="page-lead">${cart.length} article${cart.length > 1 ? 's' : ''} regroupé${cart.length > 1 ? 's' : ''} par magasin via le Parcours optimisé. Coche en faisant tes courses.</p>
 
         <div class="scan-panel">
           <div>
@@ -2857,7 +2857,7 @@ window.eat = window.eat || {};
     requestAnimationFrame(loadCollectionsAsync);
     return `
       <div class="container page fade-in">
-        <span class="page-eyebrow">Mes cookbooks</span>
+        <span class="page-eyebrow">Mes carnets</span>
         <h1 class="page-title">Mes collections</h1>
         <p class="page-lead">Range tes recettes par thème : "Plats d'hiver", "Pour les invités", "Rapide en semaine"…</p>
 

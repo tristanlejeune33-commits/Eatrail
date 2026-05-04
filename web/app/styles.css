@@ -2707,9 +2707,15 @@ textarea:focus-visible {
   padding: 12px;
   justify-content: flex-end;
 }
-.plate-card-img {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
+/* `.plate-card > *` below sets z-index:1 + position:relative on every direct
+   child. We need the <img> to be position:absolute (to fill the card) and
+   z-index:0 (under the gradient overlay). Higher-specificity selector wins. */
+.plate-card .plate-card-img,
+.plate-card > .plate-card-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   z-index: 0;
 }

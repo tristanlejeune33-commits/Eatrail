@@ -125,10 +125,11 @@ window.eat = window.eat || {};
   /** Tranches de temps semaine (minutes). */
   eat.prefs.TIME_STEPS = [15, 30, 45, 60, 90];
 
-  /** Plats représentatifs pour le swipe goûts (étape 3 onboarding). */
+  /** Plats représentatifs pour le swipe goûts (étape 3 onboarding).
+   *  IDs choisis pour avoir tous une vraie photo dans EATRAIL_IMAGES. */
   eat.prefs.SAMPLE_PLATES = [
     'bibimbap', 'cochinita-pibil', 'pho-bo', 'tagine-poulet-citron',
-    'hummus-pita', 'khachapuri-adjarian'
+    'hummus-pita', 'pad-thai'
   ];
 
   // ─────────────────────────────────────────────────────────

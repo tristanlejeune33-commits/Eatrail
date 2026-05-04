@@ -494,7 +494,7 @@
       const url = window.location.origin + '/#/flavor-dna';
       if (navigator.share) {
         try {
-          await navigator.share({ title: 'Mon Flavor DNA · eatrail', text: 'Voici mon profil culinaire sur eatrail.', url });
+          await navigator.share({ title: 'Mon identité culinaire · eatrail', text: 'Voici mon profil culinaire sur eatrail.', url });
         } catch {}
       } else {
         try {
@@ -634,7 +634,7 @@
       if (!r) return;
       const trail = eat.buildTrail(r);
       const lines = [];
-      lines.push('Trail eatrail · ' + r.title + ' (' + r.servings + ' pers.)');
+      lines.push('Parcours eatrail · ' + r.title + ' (' + r.servings + ' pers.)');
       lines.push('');
       trail.stops.forEach((stop, i) => {
         lines.push((i + 1) + '. ' + stop.shop.name + ' · ' + stop.shop.neighborhood + ' · ' + stop.shop.distMi + ' mi');
