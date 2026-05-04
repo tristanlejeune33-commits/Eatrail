@@ -221,8 +221,125 @@ window.eat = window.eat || {};
   };
 
   eat.pantry = () => safeRead(LS_PANTRY);
+
+  // ── Ingredient name catalog + fuzzy normalization ──────────
+  // Pulls every distinct ingredient name from the 625-recipe catalog so we
+  // can autocomplete user input and forgive typos (Levenshtein ≤ 2).
+
+  function _stripDiacritics(s) {
+    return String(s || '').normalize('NFD').replace(/\p{Diacritic}/gu, '');
+  }
+  function _cleanIngredientName(s) {
+    return _stripDiacritics(String(s || '').toLowerCase())
+      .replace(/\([^)]*\)/g, ' ')      // strip "(gousse)" etc.
+      .replace(/[^a-z0-9\s'-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  // Memoized: flatten the 625 recipes once, dedupe, sort by length desc so
+  // the longest specific names match first ("œufs frais" before "œufs").
+  let _ingredientCatalog = null;
+  function buildIngredientCatalog() {
+    if (_ingredientCatalog) return _ingredientCatalog;
+    const set = new Map(); // normalized → display name (first seen wins)
+    for (const r of eat.allRecipes()) {
+      for (const ing of (r.ingredients || [])) {
+        const display = String(ing.name || '').trim();
+        if (!display) continue;
+        const key = _cleanIngredientName(display);
+        if (!key || set.has(key)) continue;
+        set.set(key, display);
+      }
+    }
+    _ingredientCatalog = [...set.entries()]
+      .map(([key, display]) => ({ key, display }))
+      .sort((a, b) => b.key.length - a.key.length);
+    return _ingredientCatalog;
+  }
+
+  /** Public: alphabetical list of canonical ingredient names (for <datalist>). */
+  eat.allIngredientNames = function () {
+    return [...new Set(buildIngredientCatalog().map(e => e.display))]
+      .sort((a, b) => a.localeCompare(b, 'fr'));
+  };
+
+  // Levenshtein distance with early-exit when we exceed `maxDistance`.
+  // Returns Infinity if input would exceed maxDistance — keeps the loop fast.
+  function _levenshtein(a, b, maxDistance) {
+    if (a === b) return 0;
+    const al = a.length, bl = b.length;
+    if (Math.abs(al - bl) > maxDistance) return Infinity;
+    if (!al) return bl;
+    if (!bl) return al;
+    let prev = new Array(bl + 1);
+    let curr = new Array(bl + 1);
+    for (let j = 0; j <= bl; j++) prev[j] = j;
+    for (let i = 1; i <= al; i++) {
+      curr[0] = i;
+      let rowMin = curr[0];
+      for (let j = 1; j <= bl; j++) {
+        const cost = a.charCodeAt(i - 1) === b.charCodeAt(j - 1) ? 0 : 1;
+        curr[j] = Math.min(curr[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost);
+        if (curr[j] < rowMin) rowMin = curr[j];
+      }
+      if (rowMin > maxDistance) return Infinity;  // early exit
+      [prev, curr] = [curr, prev];
+    }
+    return prev[bl];
+  }
+
+  /**
+   * Normalize a free-form ingredient name to its closest catalog entry.
+   * "tomatte" → "Tomate", "ciboulet" → "Ciboulette", "ail (gousse)" → "Ail".
+   *
+   * Fall-through: if no match within Levenshtein distance ≤ 2, return the
+   * cleaned input as-is (we never reject; user-known foods get added too).
+   */
+  eat.normalizeIngredientName = function (input) {
+    const cleaned = _cleanIngredientName(input);
+    if (!cleaned) return String(input || '').trim().toLowerCase();
+    const catalog = buildIngredientCatalog();
+
+    // 1) Exact normalized hit
+    const exact = catalog.find(e => e.key === cleaned);
+    if (exact) return exact.display.toLowerCase();
+
+    // 2) Substring containment ("tomate cerise" entered → keep as-is if
+    //    no exact match, but match against an ingredient that contains the
+    //    user's input — useful for "tomate" → "Tomates fraîches" pre-canon).
+    //    Skipped on very short inputs to avoid false positives ("œuf" inside
+    //    "œufs frais" is fine but "ai" inside everything is not).
+    if (cleaned.length >= 4) {
+      const sub = catalog.find(e => e.key.includes(cleaned) || cleaned.includes(e.key));
+      if (sub) return sub.display.toLowerCase();
+    }
+
+    // 3) Fuzzy: smallest Levenshtein distance, capped by length-aware limit.
+    // Tighter limit on short tokens (typing "ail" with 1 typo is rare; we
+    // don't want "ail" → "an" or similar).
+    const maxDist = cleaned.length <= 4 ? 1 : (cleaned.length <= 8 ? 2 : 3);
+    let bestDist = maxDist + 1;
+    let bestEntry = null;
+    for (const e of catalog) {
+      // Skip drastically different lengths early
+      if (Math.abs(e.key.length - cleaned.length) > maxDist) continue;
+      const d = _levenshtein(cleaned, e.key, maxDist);
+      if (d < bestDist) {
+        bestDist = d;
+        bestEntry = e;
+        if (d === 0) break;
+      }
+    }
+    if (bestEntry && bestDist <= maxDist) return bestEntry.display.toLowerCase();
+
+    // 4) Nothing close enough — keep what the user typed (they may know
+    //    something we don't have in the catalog).
+    return cleaned;
+  };
+
   eat.pantryAdd = function (item) {
-    const norm = String(item).trim().toLowerCase();
+    const norm = eat.normalizeIngredientName(item);
     if (!norm) return;
     const list = eat.pantry();
     if (!list.includes(norm)) list.push(norm);
@@ -231,6 +348,7 @@ window.eat = window.eat || {};
     if (eat.api && eat.api.currentUser) {
       eat.api.pantry.add(norm).catch(e => console.warn('[sync] pantry add:', e.message));
     }
+    return norm;
   };
   eat.pantryRemove = function (item) {
     const list = eat.pantry().filter(x => x !== item);
@@ -541,12 +659,16 @@ window.eat = window.eat || {};
 
     // The server already inserted them into PantryItem rows. Mirror into
     // localStorage cache so the synchronous views (`eat.pantry()`) see them
-    // immediately, without waiting for a background pull.
+    // immediately, without waiting for a background pull. Each detected
+    // name is also passed through eat.normalizeIngredientName so that
+    // "tomatte" or "tomates cerise" map to the canonical recipe-catalog
+    // name — this is what makes the anti-gaspi suggestions surface as
+    // soon as the scan finishes.
     const cur = eat.pantry();
     const set = new Set(cur);
     let added = 0;
     for (const it of items) {
-      const norm = String(it).trim().toLowerCase();
+      const norm = eat.normalizeIngredientName(it);
       if (norm && !set.has(norm)) { set.add(norm); added++; }
     }
     safeWrite(LS_PANTRY, [...set]);

@@ -1091,7 +1091,10 @@ window.eat = window.eat || {};
           <div class="pantry-input">
             <h3 style="font-family:'Fraunces',serif;font-size:18px;margin-bottom:14px;">Mes ingrédients (${pantry.length})</h3>
             <form class="pantry-add" id="pantry-add-form">
-              <input type="text" id="pantry-add-input" placeholder="Ex : tomate, riz, ail…" autocomplete="off" />
+              <input type="text" id="pantry-add-input" placeholder="Ex : tomate, riz, ail…" autocomplete="off" list="pantry-suggestions" />
+              <datalist id="pantry-suggestions">
+                ${(eat.allIngredientNames ? eat.allIngredientNames() : []).map(n => `<option value="${esc(n)}">`).join('')}
+              </datalist>
               <button type="submit" class="btn btn-primary btn-sm">Ajouter</button>
             </form>
 
