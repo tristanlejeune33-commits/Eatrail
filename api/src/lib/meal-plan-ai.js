@@ -62,20 +62,66 @@ const RESPONSE_SCHEMA = {
 };
 
 /**
+ * Server-side mealType classifier. Mirrors the client-side
+ * eat.recipeMealType heuristic in web/app/js/utils.js so we don't have
+ * to plumb the result through the API. Keep these two in sync.
+ *
+ * Returns 'main' | 'breakfast' | 'dessert' | 'drink'.
+ */
+function classifyMealType(r) {
+  const title = String(r?.title || '').toLowerCase();
+  const cat = String(r?.category || '').toLowerCase();
+  const t = (s) => title.includes(s) || cat.includes(s);
+
+  if (t('smoothie') || t('lassi') || t('chai') || t('cocktail') || t('jus de ') ||
+      t('boisson') || t('infusion') || t('thé ') || t('thé au') ||
+      cat === 'boisson' || cat === 'drink') return 'drink';
+
+  const dessertHints = [
+    'gâteau','tarte','mousse','glace','sorbet','pudding','cake','dessert',
+    'biscuit','cookie','tiramisu','crème ','crème brûlée','brownie','éclair',
+    'baklava','clafoutis','fondant','crumble','panna cotta','flan','macaron',
+    'soufflé','muffin','beignet','donut','churros','crêpe sucrée','pancake',
+    'cheesecake','sablé','financier','madeleine','meringue','profiterole',
+    'kanelbulle','knafeh','basbousa','suzette','riz au lait','far breton',
+    'chausson','tart ','tartelette',
+  ];
+  if (dessertHints.some(h => t(h))) return 'dessert';
+  if (cat === 'dessert' || cat === 'pâtisserie' || cat === 'patisserie' ||
+      cat === 'sucré' || cat === 'sucre') return 'dessert';
+
+  const breakfastHints = [
+    'porridge','granola','oatmeal','overnight oats','muesli','congee',
+    'shakshuka','huevos rancheros','omelette du matin','french toast','pain perdu',
+    'avocado toast','tartine','pancake','waffle','gaufre',
+    'chia pudding','smoothie bowl','açaï','acai bowl','bircher',
+  ];
+  if (breakfastHints.some(h => t(h))) return 'breakfast';
+  if (cat === 'petit-déjeuner' || cat === 'petit-dejeuner' || cat === 'breakfast') return 'breakfast';
+
+  return 'main';
+}
+
+/**
  * Filter the recipe pool down to ~30-60 candidates that respect HARD constraints.
  * The smaller pool keeps the Claude prompt cheap and fast.
  *
  * @param {Array} recipes — full Recipe rows (with included relations: allergens, diet, mood)
  * @param {object} prefs  — { cuisines, allergens, dietary, budgetPerPerson }
+ * @param {string} [mealType='main'] — restrict pool to this meal type ('main' / 'breakfast' / 'dessert' / 'drink')
  */
-export function filterCandidates(recipes, prefs) {
+export function filterCandidates(recipes, prefs, mealType = 'main') {
   const userAllergens = new Set((prefs.allergens || []).map(a => a.toLowerCase()));
   const userDietary = new Set((prefs.dietary || []).map(d => d.toLowerCase()));
   const userCuisines = new Set((prefs.cuisines || []).map(c => c.toLowerCase()));
   const targetBudget = prefs.budgetPerPerson;
 
+  // 0) Hard meal-type filter: a dinner generator must NEVER pick a dessert
+  // or a breakfast no matter how good a match it scores otherwise.
+  let pool = recipes.filter(r => classifyMealType(r) === mealType);
+
   // 1) Eliminate recipes carrying any user allergen
-  let pool = recipes.filter(r => {
+  pool = pool.filter(r => {
     const recipeAllergens = (r.allergens || []).map(a => (a.allergen || a).toLowerCase());
     return !recipeAllergens.some(a => userAllergens.has(a));
   });

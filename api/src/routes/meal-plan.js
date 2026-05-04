@@ -237,8 +237,10 @@ router.post('/generate', async (req, res) => {
     },
   });
 
-  // 3) Filter to a manageable candidate pool
-  const candidates = filterCandidates(recipes, prefs);
+  // 3) Filter to a manageable candidate pool. Pass 'main' explicitly so the
+  //    weekly generator (DINNER-only) NEVER picks a dessert or a breakfast,
+  //    even if it's a great fit by other criteria.
+  const candidates = filterCandidates(recipes, prefs, 'main');
   if (candidates.length < 7) {
     return res.status(422).json({
       error: 'not_enough_candidates',
