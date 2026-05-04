@@ -35,17 +35,19 @@ Soft preferences (optimize for these):
 Respond with ONLY valid JSON matching the requested schema. No commentary, no markdown.
 For "rationale", write ONE short sentence in French (max 80 chars) explaining why this recipe fits this slot.`;
 
-// Lean schema: keep validation light at the schema level (Anthropic's strict
-// JSON mode rejects some richer constructs like additionalProperties:false
-// or enum-of-one), and let the repair pass below handle counts, dedup, and
-// invalid recipeIds.
+// Anthropic's strict JSON mode requires `additionalProperties: false` to be
+// explicitly set on every `type: 'object'` node. We keep the rest of the
+// schema lean (no min/max/enum) and rely on the repair pass below for
+// count/dedup/invalid-recipeId tolerance.
 const RESPONSE_SCHEMA = {
   type: 'object',
+  additionalProperties: false,
   properties: {
     selections: {
       type: 'array',
       items: {
         type: 'object',
+        additionalProperties: false,
         properties: {
           dayOffset: { type: 'integer' },
           slot: { type: 'string' },
