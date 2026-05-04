@@ -3,7 +3,6 @@
 import 'dotenv/config';
 import express from 'express';
 import cookieParser from 'cookie-parser';
-import cors from 'cors';
 import helmet from 'helmet';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -83,21 +82,53 @@ app.use(helmet({
   crossOriginOpenerPolicy: false,
 }));
 
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
-  .split(',')
-  .map(s => s.trim())
-  .filter(Boolean);
+// CORS — auto-allow same-origin + explicit allowlist via ALLOWED_ORIGINS env.
+// In single-service deploy (SPA + API on the same host), the browser still
+// sends an `Origin` header on POSTs, and we want to accept it without forcing
+// the user to set ALLOWED_ORIGINS for every deployment URL.
+const allowedOrigins = new Set(
+  (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+);
 
-app.use(cors({
-  origin: (origin, cb) => {
-    // Allow no-origin (mobile apps, curl) AND any allowedOrigin
-    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
-      return cb(null, true);
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  if (origin) {
+    let allow = false;
+
+    // 1. Explicit allowlist (cross-origin custom domains the operator approves)
+    if (allowedOrigins.has('*') || allowedOrigins.has(origin)) {
+      allow = true;
     }
-    cb(new Error(`CORS: origin "${origin}" not allowed`));
-  },
-  credentials: true,
-}));
+
+    // 2. Same-origin: Origin's host matches the request Host header.
+    //    Safe by construction — the browser already enforces the same-origin
+    //    policy here; we just need to echo the headers so credentialled fetch works.
+    if (!allow) {
+      try {
+        if (new URL(origin).host === req.headers.host) allow = true;
+      } catch { /* malformed Origin header → leave allow=false */ }
+    }
+
+    if (allow) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Vary', 'Origin');
+      // Mirror requested headers/methods on preflight, with a sensible default.
+      const reqHeaders = req.headers['access-control-request-headers'];
+      res.setHeader('Access-Control-Allow-Headers', reqHeaders || 'Content-Type, Accept, Authorization');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+      res.setHeader('Access-Control-Max-Age', '600');
+    }
+  }
+
+  // Short-circuit preflights so they don't fall into authLimiter / route handlers.
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
@@ -202,7 +233,8 @@ app.use((err, _req, res, _next) => {
 // ─── Start ─────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`eatrail-api listening on :${PORT} (${process.env.NODE_ENV || 'development'})`);
-  console.log(`CORS allowed: ${allowedOrigins.join(', ') || '<none — set ALLOWED_ORIGINS>'}`);
+  const explicit = [...allowedOrigins];
+  console.log(`CORS: same-origin always allowed; explicit allowlist=[${explicit.join(', ') || '(none)'}]`);
 });
 
 // Graceful shutdown
