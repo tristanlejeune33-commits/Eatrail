@@ -349,23 +349,15 @@ window.eat = window.eat || {};
       </a>`;
     }).join('');
 
-    // Visual category bar (replaces a collapsed <details> with chips that
-    // got lost in the noise). Cards with big emoji + label, scrolls
-    // horizontally on mobile, "Tous" pill at the start to reset.
-    const catCards = [
-      `<a class="cat-card ${!filters.category ? 'is-active' : ''}" href="${eat.routeUrl('recipes', [], queryFor({ category: '' }))}">
-        <span class="cat-card-emoji">🍽</span>
-        <span class="cat-card-label">Tous</span>
-      </a>`,
-      ...eat.CATEGORIES.map(c => {
-        const active = filters.category === c.id;
-        const next = active ? '' : c.id;
-        return `<a class="cat-card ${active ? 'is-active' : ''}" href="${eat.routeUrl('recipes', [], queryFor({ category: next }))}">
-          <span class="cat-card-emoji">${c.emoji}</span>
-          <span class="cat-card-label">${esc(c.label)}</span>
-        </a>`;
-      }),
-    ].join('');
+    // Categories now live inside the advanced filter panel as pills
+    // (same look as mood/diet/allergen — coherent + compact).
+    const categoryChips = eat.CATEGORIES.map(c => {
+      const active = filters.category === c.id;
+      const next = active ? '' : c.id;
+      return `<a class="pill-chip pill-category ${active ? 'is-active' : ''}" href="${eat.routeUrl('recipes', [], queryFor({ category: next }))}">
+        <span class="pill-emoji">${c.emoji}</span><span>${esc(c.label)}</span>
+      </a>`;
+    }).join('');
 
     // Visual emoji lookup tables (kept here so we don't depend on user being logged in / prefs being loaded)
     const MOOD_EMOJI = { healthy: '🥦', gourmand: '🤤', comfort: '🍲', quick: '⚡', festive: '🎉', wow: '✨', street: '🌮', spicy: '🌶️' };
@@ -448,7 +440,7 @@ window.eat = window.eat || {};
             ${countryOptions}
           </select>
           ${(() => {
-            const advCount = (filters.mood ? 1 : 0) + (filters.diet ? 1 : 0) + excludeAllergens.length;
+            const advCount = (filters.category ? 1 : 0) + (filters.mood ? 1 : 0) + (filters.diet ? 1 : 0) + excludeAllergens.length;
             return `<button type="button" class="filter-toolbar-more ${advCount ? 'has-active' : ''}" data-toggle-advanced>
               <span>⚙</span><span>Filtres</span>${advCount ? `<span class="filter-toolbar-badge">${advCount}</span>` : ''}
             </button>`;
@@ -456,13 +448,12 @@ window.eat = window.eat || {};
           ${hasFilters ? `<a class="filter-toolbar-reset" href="${eat.routeUrl('recipes', [], queryFor({ q: '', country: '', mood: '', diet: '', category: '', noallergens: '', page: '' }))}" aria-label="Réinitialiser">↺</a>` : ''}
         </div>
 
-        <!-- Catégories en row scrollable (déjà bien) -->
-        <div class="cat-row-wrap">
-          <div class="cat-row">${catCards}</div>
-        </div>
-
-        <!-- Filtres avancés : panel collapsible (auto-open si filtre actif) -->
-        <div class="advanced-filters" id="advanced-filters" ${(filters.mood || filters.diet || excludeAllergens.length) ? '' : 'hidden'}>
+        <!-- Filtres avancés : panel collapsible (auto-open si un filtre actif) -->
+        <div class="advanced-filters" id="advanced-filters" ${(filters.category || filters.mood || filters.diet || excludeAllergens.length) ? '' : 'hidden'}>
+          <div class="adv-group">
+            <div class="adv-group-label">Catégorie</div>
+            <div class="pill-row">${categoryChips}</div>
+          </div>
           <div class="adv-group">
             <div class="adv-group-label">Humeur</div>
             <div class="pill-row">${moodChips}</div>

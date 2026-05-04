@@ -4018,6 +4018,12 @@ textarea:focus-visible {
   border-color: var(--gold, #D9A441);
   box-shadow: 0 3px 10px rgba(217, 164, 65, .35);
 }
+.pill-category.is-active {
+  background: var(--ink);
+  color: var(--white);
+  border-color: var(--ink);
+  box-shadow: 0 3px 10px rgba(21, 33, 26, .25);
+}
 .pill-allergen {
   border-style: dashed;
   color: var(--muted);
