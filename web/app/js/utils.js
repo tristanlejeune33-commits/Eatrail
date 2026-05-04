@@ -419,7 +419,6 @@ window.eat = window.eat || {};
   // ── Pantry photo scan ─────────────────────────────────────
   // Server-side Anthropic Claude Vision via POST /api/pantry/scan.
   // The ANTHROPIC_API_KEY lives ONLY on the server — clients never see it.
-  // No more client-side OpenAI key prompt or localStorage stash.
   function setScanStatus(msg, isError) {
     const el = document.getElementById('pantry-scan-status');
     if (!el) return;
@@ -429,6 +428,51 @@ window.eat = window.eat || {};
 
   // One-shot cleanup of the legacy OpenAI key cached in old browsers.
   try { localStorage.removeItem('eatrail.openai_key'); } catch {}
+
+  /**
+   * Re-encode an image File → JPEG Blob via <canvas>.
+   * Reasons:
+   *   - iPhone defaults to HEIC, which Claude Vision DOES NOT support.
+   *     If Safari can decode the HEIC into an <img>, the canvas pipeline
+   *     re-emits it as JPEG. (Safari iOS 15+ decodes HEIC natively;
+   *     Chrome desktop cannot, but desktop users don't shoot HEIC.)
+   *   - Big phone photos (5–12 MB) get downscaled to maxDim=1600px which
+   *     is plenty for Claude vision (capped at 2576px long-edge anyway)
+   *     and keeps the upload fast.
+   *
+   * Returns a File with .name preserved + .type=image/jpeg.
+   * On failure, returns the original `file` unchanged (server will reject if needed).
+   */
+  async function reencodeImageToJpeg(file, maxDim = 1600, quality = 0.9) {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const w = img.naturalWidth, h = img.naturalHeight;
+          if (!w || !h) { URL.revokeObjectURL(url); resolve(file); return; }
+          const scale = Math.min(1, maxDim / Math.max(w, h));
+          const cw = Math.round(w * scale), ch = Math.round(h * scale);
+          const canvas = document.createElement('canvas');
+          canvas.width = cw; canvas.height = ch;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, cw, ch);
+          canvas.toBlob((blob) => {
+            URL.revokeObjectURL(url);
+            if (!blob) { resolve(file); return; }
+            const newName = (file.name || 'photo').replace(/\.[^.]+$/, '') + '.jpg';
+            resolve(new File([blob], newName, { type: 'image/jpeg' }));
+          }, 'image/jpeg', quality);
+        } catch {
+          URL.revokeObjectURL(url);
+          resolve(file);
+        }
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+  eat.reencodeImageToJpeg = reencodeImageToJpeg;
 
   eat.scanPantryPhoto = async function (file) {
     if (!file) { setScanStatus('Aucun fichier fourni.', true); return; }
@@ -441,11 +485,13 @@ window.eat = window.eat || {};
       return;
     }
 
+    setScanStatus('Préparation de l\'image…');
+    const upload = await reencodeImageToJpeg(file);
     setScanStatus('Analyse Claude Vision (≈10s)…');
 
     let json;
     try {
-      json = await eat.api.pantry.scan(file);
+      json = await eat.api.pantry.scan(upload);
     } catch (e) {
       const code = e && e.code;
       const msg =
@@ -520,11 +566,13 @@ window.eat = window.eat || {};
       return;
     }
 
+    setCartScanResult('Préparation de l\'image…');
+    const upload = await reencodeImageToJpeg(file);
     setCartScanResult('Analyse Claude Vision (≈10s)…');
 
     let json;
     try {
-      json = await eat.api.pantry.scan(file);
+      json = await eat.api.pantry.scan(upload);
     } catch (e) {
       const code = e && e.code;
       const msg =

@@ -89,11 +89,17 @@ router.post('/scan', upload.single('photo'), async (req, res) => {
   }
 
   const mediaType = req.file.mimetype;
-  // Claude vision accepts: image/jpeg, image/png, image/gif, image/webp
+  // Claude vision accepts: image/jpeg, image/png, image/gif, image/webp.
+  // HEIC/HEIF (iPhone default) is NOT supported — the client must convert.
   if (!/^image\/(jpe?g|png|gif|webp)$/i.test(mediaType)) {
-    return res.status(400).json({ error: 'unsupported_image_type', detail: mediaType });
+    return res.status(400).json({
+      error: 'unsupported_image_type',
+      detail: mediaType,
+      message: `Format ${mediaType} non supporté. Utilise JPEG, PNG, WEBP ou GIF.`,
+    });
   }
   const base64 = req.file.buffer.toString('base64');
+  console.log(`[scan] photo: ${mediaType}, ${(req.file.size / 1024).toFixed(0)}KB, user=${req.user.id}`);
 
   let response;
   try {
@@ -105,9 +111,8 @@ router.post('/scan', upload.single('photo'), async (req, res) => {
         format: {
           type: 'json_schema',
           schema: SCAN_SCHEMA,
-          name: 'pantry_scan_result',
         },
-        effort: 'medium',  // vision needs more thought than text classification
+        effort: 'medium',
       },
       messages: [{
         role: 'user',
@@ -128,25 +133,41 @@ router.post('/scan', upload.single('photo'), async (req, res) => {
       }],
     });
   } catch (e) {
-    console.error('[scan] Anthropic error:', e.message, e.status);
-    return res.status(502).json({ error: 'anthropic_error', detail: e.message?.slice(0, 300) });
+    console.error('[scan] Anthropic error:', e.status, e.message, e.error || '');
+    return res.status(502).json({ error: 'anthropic_error', detail: (e.message || '').slice(0, 300) });
   }
 
-  // Extract JSON from response content blocks
-  const textBlock = (response.content || []).find(b => b.type === 'text');
-  if (!textBlock) {
-    return res.status(502).json({ error: 'anthropic_no_text' });
+  // Three possible response shapes (in order of preference):
+  //   1. response.parsed_output         (SDK pre-parses when output_config.format is set)
+  //   2. response.content[].type === 'text'  (raw JSON in a text block)
+  //   3. response.content[].input       (tool-use style — rare with json_schema)
+  let parsed = null;
+  if (response.parsed_output && typeof response.parsed_output === 'object') {
+    parsed = response.parsed_output;
+  } else {
+    const textBlock = (response.content || []).find(b => b.type === 'text');
+    if (textBlock && textBlock.text) {
+      try { parsed = JSON.parse(textBlock.text); } catch {}
+    }
   }
 
-  let parsed;
-  try {
-    parsed = JSON.parse(textBlock.text);
-  } catch {
-    return res.status(502).json({ error: 'anthropic_invalid_json', raw: textBlock.text?.slice(0, 200) });
+  if (!parsed) {
+    console.error('[scan] no parseable response. content blocks:',
+      (response.content || []).map(b => b.type).join(','),
+      'parsed_output:', !!response.parsed_output);
+    return res.status(502).json({
+      error: 'anthropic_no_response',
+      message: 'Claude n\'a pas renvoyé de réponse exploitable — réessaie.',
+    });
   }
 
   const detected = Array.isArray(parsed.ingredients) ? parsed.ingredients : [];
   const norm = [...new Set(detected.map(s => String(s).trim().toLowerCase()).filter(Boolean))];
+  console.log(`[scan] detected ${norm.length} ingredient(s): ${norm.slice(0, 8).join(', ')}${norm.length > 8 ? '…' : ''}`);
+
+  if (norm.length === 0) {
+    return res.json({ detected: [], added: 0, message: 'Aucun aliment reconnu sur cette photo.' });
+  }
 
   const result = await prisma.pantryItem.createMany({
     data: norm.map(name => ({ userId: req.user.id, name, source: 'scan' })),
