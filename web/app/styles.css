@@ -50,6 +50,20 @@ body {
   /* Évite scroll horizontal accidentel */
   overflow-x: hidden;
 }
+/* Twemoji flag images (drop-in replacement for 🇫🇷 / 🇮🇹 / etc. text emoji on
+   platforms that don't render regional-indicator pairs as flags — Windows
+   Chrome/Firefox/Edge are the main culprits). Inherits sizing from the text
+   it replaced. */
+.flag-emoji {
+  display: inline-block;
+  height: 1em;
+  width: auto;
+  vertical-align: -0.1em;       /* baseline align with surrounding text */
+  margin: 0;
+  user-select: none;
+}
+.flag-emoji-wrap { display: inline; }
+
 /* Hit-area minimum 44px sur mobile */
 button, a, input[type="submit"] { touch-action: manipulation; }
 button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }

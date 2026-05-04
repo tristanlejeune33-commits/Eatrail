@@ -54,6 +54,7 @@ app.use(helmet({
         'https://maps.googleapis.com',
         'https://*.tiles.mapbox.com',
         'https://api.mapbox.com',
+        'https://cdn.jsdelivr.net',  // Twemoji SVG flags (flag-emoji.js)
       ],
       // 'unsafe-inline' for our small bootstrap inline scripts in views;
       // 'unsafe-eval' is required by Mapbox GL JS (GLSL shaders) AND html5-qrcode (decoder workers).

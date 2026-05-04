@@ -5,7 +5,7 @@
  *   - API calls (/api/*) → network-first, fallback cache (read-only views)
  *   - everything else → network-only
  */
-const VERSION = 'eatrail-v1.11.0';
+const VERSION = 'eatrail-v1.12.0';
 const STATIC_CACHE = `${VERSION}-static`;
 const IMAGE_CACHE = `${VERSION}-images`;
 const API_CACHE = `${VERSION}-api`;
@@ -20,6 +20,7 @@ const APP_SHELL = [
   '/js/api-client.js',
   '/js/geo.js',
   '/js/barcode-scanner.js',
+  '/js/flag-emoji.js',
   '/js/auth.js',
   '/js/prefs.js',
   '/js/utils.js',

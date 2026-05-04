@@ -51,6 +51,10 @@
     root.innerHTML = html;
     updateCartBadge();
     updateNavAuthState();
+    // Let modules that need to post-process the rendered DOM know they can
+    // run now (currently: flag-emoji.js replaces 🇫🇷 emojis with SVG <img>
+    // for cross-platform / Windows rendering parity).
+    document.dispatchEvent(new CustomEvent('eat:render'));
     window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
   }
 

@@ -2327,7 +2327,7 @@ window.eat = window.eat || {};
         </div>
 
         <div class="onb-section">
-          <div class="onb-section-title">Temps moyen le soir : <strong style="color:var(--primary);"><span id="onb-time-val">${minutes}</span> min</strong></div>
+          <div class="onb-section-title">Temps par jour (en semaine) : <strong style="color:var(--primary);"><span id="onb-time-val">${minutes}</span> min</strong></div>
           <div class="range-wrap">
             <input type="range" class="range-input" id="onb-time"
               min="15" max="120" step="15" value="${minutes}"
@@ -2584,7 +2584,7 @@ window.eat = window.eat || {};
           </div>
         </div>
         <div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:6px;">Temps semaine : <strong style="color:var(--primary);"><span id="prefs-time-val">${minutes}</span> min</strong></div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:6px;">Temps par jour (en semaine) : <strong style="color:var(--primary);"><span id="prefs-time-val">${minutes}</span> min</strong></div>
           <div class="range-wrap">
             <input type="range" class="range-input" id="prefs-time" min="15" max="120" step="15" value="${minutes}"
               style="--pct: ${((minutes - 15) / 105) * 100}%" />
