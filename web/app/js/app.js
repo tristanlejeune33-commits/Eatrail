@@ -135,13 +135,6 @@
       eat.scanPantryPhoto(file).then(() => render());
     }
 
-    // Cart product scan: photo → Claude Vision → tick matching cart items
-    if (e.target && e.target.id === 'cart-scan-input') {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      eat.scanCartProduct(file).then(() => render());
-    }
-
     // Geo radius slider — debounce update
     if (e.target && e.target.id === 'geo-radius') {
       const v = parseFloat(e.target.value).toFixed(1);
@@ -663,8 +656,6 @@
       );
       return;
     }
-
-    // (cart-scan-input is handled by the change-event listener below — not click)
 
     // ── Real barcode scanner ────────────────────────────────
     if (e.target && e.target.id === 'cart-barcode-btn') {
