@@ -198,8 +198,15 @@
     const cookedBtn = e.target.closest && e.target.closest('[data-mark-cooked]');
     if (cookedBtn) {
       const id = cookedBtn.getAttribute('data-mark-cooked');
-      await eat.mealPlan.update(id, { status: 'COOKED' });
-      render();
+      cookedBtn.disabled = true;
+      try {
+        await eat.mealPlan.update(id, { status: 'COOKED' });
+      } catch (err) {
+        console.error('[calendar] mark-cooked failed:', err);
+        alert('Impossible de marquer cuisiné : ' + (err.message || err.code || 'erreur inconnue'));
+      } finally {
+        render();
+      }
       return;
     }
 
@@ -208,8 +215,15 @@
     if (removeBtn) {
       const id = removeBtn.getAttribute('data-remove-meal');
       if (!confirm('Retirer ce repas du planning ?')) return;
-      await eat.mealPlan.remove(id);
-      render();
+      removeBtn.disabled = true;
+      try {
+        await eat.mealPlan.remove(id);
+      } catch (err) {
+        console.error('[calendar] remove-meal failed:', err);
+        alert('Suppression impossible : ' + (err.message || err.code || 'erreur inconnue'));
+      } finally {
+        render();
+      }
       return;
     }
 
@@ -272,10 +286,28 @@
     if (e.target && e.target.id === 'cal-clear-week') {
       const ctx = eat._calendarContext;
       if (!ctx) return;
+      const btn = e.target;
       if (!confirm('Vider tous les repas de cette semaine ?')) return;
-      const plans = await eat.mealPlan.list(ctx.weekStart, ctx.weekEnd);
-      for (const p of plans) await eat.mealPlan.remove(p.id);
-      render();
+      btn.disabled = true;
+      btn.textContent = '⏳ Suppression…';
+      try {
+        const plans = await eat.mealPlan.list(ctx.weekStart, ctx.weekEnd);
+        const arr = Array.isArray(plans) ? plans : [];
+        // Run deletions in parallel — way faster on a full week.
+        // Each delete is independent; we collect failures rather than aborting.
+        const results = await Promise.allSettled(arr.map(p => eat.mealPlan.remove(p.id)));
+        const fails = results.filter(r => r.status === 'rejected');
+        if (fails.length) {
+          console.warn('[cal-clear-week] some deletions failed:', fails.length, '/', arr.length);
+        }
+      } catch (err) {
+        console.error('[cal-clear-week] failed:', err);
+        alert('Vidage impossible : ' + (err.message || err.code || 'erreur inconnue'));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🗑 Vider la semaine';
+        render();
+      }
       return;
     }
 
@@ -603,7 +635,7 @@
   });
 
   // Servings +/-
-  document.addEventListener('click', (e) => {
+  document.addEventListener('click', async (e) => {
     const sBtn = e.target.closest && e.target.closest('[data-servings-delta]');
     if (sBtn) {
       const route = eat.parseRoute();
@@ -801,12 +833,35 @@
     }
 
     if (e.target && e.target.id === 'cart-clear-all') {
-      if (confirm('Vider tout le panier ?')) { eat.cartClear(); render(); }
+      if (!confirm('Vider tout le panier ?')) return;
+      const btn = e.target;
+      btn.disabled = true;
+      try {
+        eat.cartClear();
+        // Force the debounced sync to land NOW so the DB is also empty by the
+        // time we re-render. Without this, a fast nav-away leaves stale items
+        // in the DB which re-appear on next login (the "stale cart" bug).
+        if (eat.flushCartSync) await eat.flushCartSync();
+      } catch (err) {
+        console.error('[cart-clear-all] failed:', err);
+      } finally {
+        btn.disabled = false;
+        render();
+      }
       return;
     }
     if (e.target && e.target.id === 'cart-clear-checked') {
-      eat.cartClearChecked();
-      render();
+      const btn = e.target;
+      btn.disabled = true;
+      try {
+        eat.cartClearChecked();
+        if (eat.flushCartSync) await eat.flushCartSync();
+      } catch (err) {
+        console.error('[cart-clear-checked] failed:', err);
+      } finally {
+        btn.disabled = false;
+        render();
+      }
       return;
     }
 
