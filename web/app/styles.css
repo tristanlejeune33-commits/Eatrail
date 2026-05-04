@@ -72,6 +72,14 @@ a { color: var(--primary); text-decoration: none; }
 a:hover { color: var(--primary-dark); }
 img { max-width: 100%; display: block; }
 
+/* The HTML5 `hidden` boolean attribute SHOULD always force display:none,
+   but its built-in rule (`[hidden] { display: none }`) has class-level
+   specificity and gets quietly overridden by any `display: flex/grid`
+   rule that uses a class selector. That's why empty `.auth-banner` /
+   `.field-error` placeholders showed up as ugly red strips even with
+   `hidden` set. Pin it. */
+[hidden] { display: none !important; }
+
 /* ── LAYOUT ─────────────────────────────────────────── */
 .container { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
 @media (max-width: 600px) { .container { padding: 0 18px; } }
@@ -3935,6 +3943,96 @@ textarea:focus-visible {
   .cat-card { width: 84px; padding: 12px 6px; border-radius: 14px; }
   .cat-card-emoji { font-size: 24px; }
   .cat-card-label { font-size: 11px; }
+}
+
+/* ── Pill filters (mood / diet / allergen) ──────────────── */
+.pill-section { margin: 0 0 18px; }
+.pill-section-head {
+  display: flex; align-items: baseline; gap: 10px;
+  margin-bottom: 10px;
+}
+.pill-section-title {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0;
+}
+.pill-section-active {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  color: var(--primary);
+  background: rgba(63, 139, 84, .12);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.pill-section-active.is-warn {
+  color: var(--accent);
+  background: rgba(200, 90, 58, .12);
+}
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pill-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--white);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all .12s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+.pill-chip:hover {
+  border-color: var(--primary);
+  background: rgba(63, 139, 84, .04);
+  transform: translateY(-1px);
+}
+.pill-chip .pill-emoji {
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* Active states — color-coded by family for quick visual scan */
+.pill-mood.is-active {
+  background: var(--primary);
+  color: var(--white);
+  border-color: var(--primary);
+  box-shadow: 0 3px 10px rgba(63, 139, 84, .25);
+}
+.pill-diet.is-active {
+  background: var(--gold, #D9A441);
+  color: var(--ink);
+  border-color: var(--gold, #D9A441);
+  box-shadow: 0 3px 10px rgba(217, 164, 65, .35);
+}
+.pill-allergen {
+  border-style: dashed;
+  color: var(--muted);
+}
+.pill-allergen:hover { border-color: var(--accent); color: var(--accent); }
+.pill-allergen.is-active {
+  background: rgba(200, 90, 58, .15);
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  border-style: solid;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .pill-chip { padding: 7px 12px; font-size: 12.5px; }
 }
 
 /* ─────────────────────────────────────────────────────────

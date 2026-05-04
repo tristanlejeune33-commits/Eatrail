@@ -337,22 +337,40 @@ window.eat = window.eat || {};
       }),
     ].join('');
 
+    // Visual emoji lookup tables (kept here so we don't depend on user being logged in / prefs being loaded)
+    const MOOD_EMOJI = { healthy: '🥦', gourmand: '🤤', comfort: '🍲', quick: '⚡', festive: '🎉', wow: '✨', street: '🌮', spicy: '🌶️' };
+    const MOOD_LABEL = { healthy: 'Sain', gourmand: 'Gourmand', comfort: 'Réconfort', quick: 'Rapide', festive: 'Festif', wow: 'Wow', street: 'Street', spicy: 'Épicé' };
+    const DIET_EMOJI = { vegetarian: '🥗', vegan: '🌱', pescatarian: '🐟', 'gluten-free': '🌾', 'dairy-free': '🥛', 'halal-friendly': '🕌', kosher: '✡' };
+    const DIET_LABEL = { vegetarian: 'Végé', vegan: 'Vegan', pescatarian: 'Pesco', 'gluten-free': 'Sans gluten', 'dairy-free': 'Sans lactose', 'halal-friendly': 'Halal', kosher: 'Kasher' };
+    const ALLERGEN_EMOJI = { 'gluten': '🌾', 'lait': '🥛', 'lactose': '🥛', 'œufs': '🥚', 'oeufs': '🥚', 'soja': '🫘', 'sésame': '🌰', 'sesame': '🌰', 'arachides': '🥜', 'fruits à coque': '🌰', 'poisson': '🐟', 'crustacés': '🦐', 'crustaces': '🦐', 'mollusques': '🦑' };
+
     const moodChips = moodOptions.map(m => {
       const active = filters.mood === m;
       const next = active ? '' : m;
-      return `<a class="filter-chip ${active ? 'is-active' : ''}" href="${eat.routeUrl('recipes', [], queryFor({ mood: next }))}">${m}</a>`;
+      const emoji = MOOD_EMOJI[m] || '✨';
+      const label = MOOD_LABEL[m] || m;
+      return `<a class="pill-chip pill-mood ${active ? 'is-active' : ''}" href="${eat.routeUrl('recipes', [], queryFor({ mood: next }))}">
+        <span class="pill-emoji">${emoji}</span><span>${esc(label)}</span>
+      </a>`;
     }).join('');
 
     const dietChips = dietOptions.map(d => {
       const active = filters.diet === d;
       const next = active ? '' : d;
-      return `<a class="filter-chip ${active ? 'is-active' : ''}" href="${eat.routeUrl('recipes', [], queryFor({ diet: next }))}">${d}</a>`;
+      const emoji = DIET_EMOJI[d] || '🥬';
+      const label = DIET_LABEL[d] || d;
+      return `<a class="pill-chip pill-diet ${active ? 'is-active' : ''}" href="${eat.routeUrl('recipes', [], queryFor({ diet: next }))}">
+        <span class="pill-emoji">${emoji}</span><span>${esc(label)}</span>
+      </a>`;
     }).join('');
 
     const allergenChips = eat.ALLERGENS.map(a => {
       const active = excludeAllergens.includes(a);
       const nextList = active ? excludeAllergens.filter(x => x !== a) : [...excludeAllergens, a];
-      return `<a class="filter-chip ${active ? 'is-active' : ''}" href="${eat.routeUrl('recipes', [], queryFor({ noallergens: nextList.join(',') }))}">${active ? '✓ sans' : 'sans'} ${esc(a)}</a>`;
+      const emoji = ALLERGEN_EMOJI[a.toLowerCase()] || '⚠';
+      return `<a class="pill-chip pill-allergen ${active ? 'is-active' : ''}" href="${eat.routeUrl('recipes', [], queryFor({ noallergens: nextList.join(',') }))}">
+        <span class="pill-emoji">${emoji}</span><span>${active ? '✓ sans ' : 'sans '}${esc(a)}</span>
+      </a>`;
     }).join('');
 
     const countryOptions = countries.map(c =>
@@ -401,20 +419,29 @@ window.eat = window.eat || {};
           <div class="cat-row">${catCards}</div>
         </div>
 
-        <details class="filter-bar" style="display:block;padding:0;background:transparent;border:none;margin-bottom:14px;">
-          <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--primary);padding:6px 0;">Humeur ${filters.mood ? `(${filters.mood})` : ''}</summary>
-          <div class="filter-group" style="margin-top:10px;">${moodChips}</div>
-        </details>
+        <div class="pill-section">
+          <div class="pill-section-head">
+            <h3 class="pill-section-title">Humeur</h3>
+            ${filters.mood ? `<span class="pill-section-active">${esc(filters.mood)}</span>` : ''}
+          </div>
+          <div class="pill-row">${moodChips}</div>
+        </div>
 
-        <details class="filter-bar" style="display:block;padding:0;background:transparent;border:none;margin-bottom:14px;">
-          <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--primary);padding:6px 0;">Régime ${filters.diet ? `(${filters.diet})` : ''}</summary>
-          <div class="filter-group" style="margin-top:10px;">${dietChips}</div>
-        </details>
+        <div class="pill-section">
+          <div class="pill-section-head">
+            <h3 class="pill-section-title">Régime</h3>
+            ${filters.diet ? `<span class="pill-section-active">${esc(filters.diet)}</span>` : ''}
+          </div>
+          <div class="pill-row">${dietChips}</div>
+        </div>
 
-        <details class="filter-bar" style="display:block;padding:0;background:transparent;border:none;margin-bottom:32px;" ${excludeAllergens.length ? 'open' : ''}>
-          <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--accent);padding:6px 0;">⚠ Allergènes à exclure ${excludeAllergens.length ? `(${excludeAllergens.length})` : ''}</summary>
-          <div class="filter-group" style="margin-top:10px;">${allergenChips}</div>
-        </details>
+        <div class="pill-section pill-section-allergen">
+          <div class="pill-section-head">
+            <h3 class="pill-section-title">⚠ Allergènes à exclure</h3>
+            ${excludeAllergens.length ? `<span class="pill-section-active is-warn">${excludeAllergens.length} actif${excludeAllergens.length > 1 ? 's' : ''}</span>` : ''}
+          </div>
+          <div class="pill-row">${allergenChips}</div>
+        </div>
 
         ${totalResults === 0
           ? `<div class="empty"><h3>Aucun plat ne matche</h3><p>Essaie d'enlever un filtre, ou cherche un autre pays.</p></div>`
@@ -2037,27 +2064,10 @@ window.eat = window.eat || {};
         <div class="auth-banner auth-banner-error" id="pwd-form-error" hidden></div>
       </form>
 
-      <div class="danger-zone">
-        <h3>Zone dangereuse</h3>
-        <p>La suppression de ton compte est définitive. Tes favoris, ton panier et tes avis seront perdus.</p>
-        <button type="button" class="btn btn-danger-ghost btn-sm" id="acc-delete-toggle">Supprimer mon compte…</button>
-
-        <form id="delete-form" novalidate hidden style="margin-top:18px;">
-          <div class="field">
-            <label class="field-label" for="del-pwd">Confirme avec ton mot de passe</label>
-            <div class="pwd-wrap">
-              <input type="password" id="del-pwd" class="field-input" autocomplete="current-password" required />
-              <button type="button" class="pwd-toggle" data-pwd-toggle="del-pwd" aria-label="Afficher / masquer">👁</button>
-            </div>
-            <div class="field-error" id="del-pwd-error" hidden></div>
-          </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button type="submit" class="btn btn-danger" id="del-submit">Supprimer définitivement</button>
-            <button type="button" class="btn btn-ghost" id="acc-delete-cancel">Annuler</button>
-          </div>
-          <div class="auth-banner auth-banner-error" id="del-form-error" hidden></div>
-        </form>
-      </div>
+      <!-- "Zone dangereuse" / suppression de compte: re-activer ce bloc quand
+           DELETE /api/auth/me sera implémenté côté serveur (eat.auth.deleteAccount
+           est stubbé en 'not-yet-implemented' depuis le cleanup #6). En attendant
+           on cache : un bouton qui ne fait rien est pire que pas de bouton. -->
     `;
 
     return accountShell('security', body);
