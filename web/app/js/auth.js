@@ -173,6 +173,15 @@ window.eat = window.eat || {};
   // ── Logout ───────────────────────────────────────────────
   eat.auth.logout = async function () {
     const prev = _apiUser;
+
+    // CRITICAL: flush any pending cart sync BEFORE we clear the cookie.
+    // Otherwise a debounced cart-clear (writeCart → 600ms timer) fires
+    // anonymous, the API returns 401, the DB cart stays stale, and the
+    // user sees their old cart re-appear at next login.
+    if (eat.flushCartSync) {
+      try { await eat.flushCartSync(); } catch {}
+    }
+
     if (eat.api && eat.api.isOnline && _apiUser) {
       try { await eat.api.auth.logout(); } catch {}
     }

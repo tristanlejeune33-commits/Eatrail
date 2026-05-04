@@ -780,30 +780,42 @@ window.eat = window.eat || {};
     scheduleCartSync();
   }
 
-  // Debounced full cart sync (1 push per 600ms after last mutation)
+  // Debounced full cart sync (1 push per 600ms after last mutation).
+  // Exposed via eat.flushCartSync() so callers (auth logout) can force the
+  // pending push to land BEFORE the session cookie is cleared — otherwise the
+  // sync fires anonymous, hits 401, gets swallowed, and the DB stays stale.
   let _cartSyncTimer = null;
+  async function pushCartSnapshot() {
+    if (!eat.api || !eat.api.currentUser) return;
+    try {
+      const local = readCart();
+      await eat.api.cart.clear();
+      if (local.length > 0) {
+        const items = local.map(c => ({
+          ingredientName: c.name,
+          qty: typeof c.qty === 'number' ? c.qty : null,
+          unit: c.unit,
+          recipeId: c.recipeId,
+          shopId: c.shopId,
+          checked: !!c.checked,
+        }));
+        await eat.api.cart.import(items);
+      }
+    } catch (e) { console.warn('[sync] cart snapshot:', e.message); }
+  }
   function scheduleCartSync() {
     if (!eat.api || !eat.api.currentUser) return;
     clearTimeout(_cartSyncTimer);
-    _cartSyncTimer = setTimeout(async () => {
-      try {
-        const local = readCart();
-        // Replace the entire API cart with the local snapshot
-        await eat.api.cart.clear();
-        if (local.length > 0) {
-          const items = local.map(c => ({
-            ingredientName: c.name,
-            qty: typeof c.qty === 'number' ? c.qty : null,
-            unit: c.unit,
-            recipeId: c.recipeId,
-            shopId: c.shopId,
-            checked: !!c.checked,
-          }));
-          await eat.api.cart.import(items);
-        }
-      } catch (e) { console.warn('[sync] cart snapshot:', e.message); }
-    }, 600);
+    _cartSyncTimer = setTimeout(() => { _cartSyncTimer = null; pushCartSnapshot(); }, 600);
   }
+  /** Force any debounced cart sync to run NOW. Returns when the push is done. */
+  eat.flushCartSync = async function () {
+    if (_cartSyncTimer) {
+      clearTimeout(_cartSyncTimer);
+      _cartSyncTimer = null;
+      await pushCartSnapshot();
+    }
+  };
 
   eat.cart = () => readCart();
   eat.cartCount = () => readCart().filter(i => !i.checked).length;
