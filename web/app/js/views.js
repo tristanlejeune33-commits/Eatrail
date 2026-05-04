@@ -750,6 +750,9 @@ window.eat = window.eat || {};
 
         <div style="margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;">
           <button class="btn btn-primary" id="export-trail">📋 Copier la liste de courses</button>
+          ${trail.stops.some(st => st.shop && st.shop.coords && Number.isFinite(st.shop.coords.lat)) ? `
+            <button class="btn btn-secondary" data-open-directions-trail="${esc(r.id)}">🗺️ Ouvrir l'itinéraire</button>
+          ` : ''}
           <a class="btn btn-ghost" href="${eat.routeUrl('recipe', [r.id])}">← Revoir la recette</a>
         </div>
       </div>
@@ -997,9 +1000,15 @@ window.eat = window.eat || {};
 
           <p style="font-size:16px;color:var(--ink);margin-bottom:20px;">${esc(s.story)}</p>
 
-          <div style="font-size:14px;color:var(--muted);">
+          <div style="font-size:14px;color:var(--muted);margin-bottom:18px;">
             <strong>Adresse :</strong> ${esc(s.address)}
           </div>
+
+          ${(s.coords && Number.isFinite(s.coords.lat)) ? `
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn btn-primary" data-open-directions-shop="${esc(s.id)}">📍 Y aller</button>
+            </div>
+          ` : ''}
         </div>
 
         <div class="recipe-layout">

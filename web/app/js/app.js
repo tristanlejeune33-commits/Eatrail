@@ -502,6 +502,33 @@
       return;
     }
 
+    const dirShop = e.target.closest && e.target.closest('[data-open-directions-shop]');
+    if (dirShop) {
+      const id = dirShop.getAttribute('data-open-directions-shop');
+      const shop = eat.shopById(id);
+      if (!shop || !shop.coords) {
+        dirShop.textContent = '⚠ Position du magasin indisponible';
+        return;
+      }
+      eat.geo.openDirections([shop]);
+      return;
+    }
+
+    const dirTrail = e.target.closest && e.target.closest('[data-open-directions-trail]');
+    if (dirTrail) {
+      const recipeId = dirTrail.getAttribute('data-open-directions-trail');
+      const r = eat.recipeById(recipeId);
+      if (!r) return;
+      const trail = eat.buildTrail(r);
+      const stopsWithCoords = trail.stops.map(st => st.shop).filter(s => s && s.coords);
+      if (stopsWithCoords.length === 0) {
+        dirTrail.textContent = '⚠ Aucune position de magasin';
+        return;
+      }
+      eat.geo.openDirections(stopsWithCoords);
+      return;
+    }
+
     const remove = e.target.closest && e.target.closest('[data-pantry-remove]');
     if (remove) {
       eat.pantryRemove(remove.getAttribute('data-pantry-remove'));
@@ -1164,9 +1191,10 @@
 
     if (!res.ok) {
       const map = {
-        'name':         ['settings-name-error', 'Nom requis (2 caractères minimum).'],
-        'email-format': ['settings-email-error', 'Format e-mail invalide.'],
-        'email-taken':  ['settings-email-error', 'Cet e-mail est déjà utilisé par un autre compte.']
+        'name':                ['settings-name-error', 'Nom requis (2 caractères minimum).'],
+        'email-format':        ['settings-email-error', 'Format e-mail invalide.'],
+        'email-taken':         ['settings-email-error', 'Cet e-mail est déjà utilisé par un autre compte.'],
+        'not-yet-implemented': ['settings-form-error', 'Édition du profil bientôt disponible.'],
       };
       const [errId, msg] = map[res.error] || ['settings-form-error', 'Mise à jour impossible.'];
       const inputId = errId.replace('-error', '');
@@ -1199,6 +1227,8 @@
       } else if (res.error === 'password-weak') {
         document.getElementById('pwd-new').classList.add('is-error');
         showError('pwd-new-error', 'Nouveau mot de passe trop faible (8 caractères minimum).');
+      } else if (res.error === 'not-yet-implemented') {
+        showFormBanner('pwd-form-error', 'Changement de mot de passe bientôt disponible.', 'error');
       } else {
         showFormBanner('pwd-form-error', 'Changement impossible.', 'error');
       }
@@ -1222,6 +1252,8 @@
       if (res.error === 'wrong-password') {
         document.getElementById('del-pwd').classList.add('is-error');
         showError('del-pwd-error', 'Mot de passe incorrect.');
+      } else if (res.error === 'not-yet-implemented') {
+        showFormBanner('del-form-error', 'Suppression de compte bientôt disponible. Contacte le support si urgent.', 'error');
       } else {
         showFormBanner('del-form-error', 'Suppression impossible.', 'error');
       }
