@@ -127,11 +127,11 @@ window.eat = window.eat || {};
       return { ok: true, account: eat.auth.current() };
     } catch (err) {
       if (err.code === 'email_taken') return { ok: false, error: 'email-taken' };
-      if (err.code === 'invalid_input') return { ok: false, error: 'password-weak' };
+      if (err.code === 'invalid_input') return { ok: false, error: 'password-weak', message: err.message };
       if (err.code === 'too_many_requests') return { ok: false, error: 'rate-limit' };
       if (err.code === 'network') return { ok: false, error: 'network', message: err.message };
-      console.error('[auth] signup server error:', err.code, err.message);
-      return { ok: false, error: 'server', message: err.message };
+      console.error('[auth] signup error:', err.code, err.status, err.message);
+      return { ok: false, error: 'server', message: `${err.code || 'http_' + (err.status||'?')}: ${err.message || ''}` };
     }
   };
 
@@ -161,10 +161,12 @@ window.eat = window.eat || {};
       return { ok: true, account: eat.auth.current() };
     } catch (err) {
       if (err.code === 'invalid_credentials') return { ok: false, error: 'wrong-password' };
+      if (err.code === 'invalid_input') return { ok: false, error: 'invalid-input', message: err.message };
       if (err.code === 'too_many_requests') return { ok: false, error: 'rate-limit' };
       if (err.code === 'network') return { ok: false, error: 'network', message: err.message };
-      console.error('[auth] login server error:', err.code, err.message);
-      return { ok: false, error: 'server', message: err.message };
+      // Surface the real error code/status so the user (and we) know what went wrong.
+      console.error('[auth] login error:', err.code, err.status, err.message);
+      return { ok: false, error: 'server', message: `${err.code || 'http_' + (err.status||'?')}: ${err.message || ''}` };
     }
   };
 

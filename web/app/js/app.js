@@ -1138,13 +1138,17 @@
     setBusy(submit, false);
 
     if (!res.ok) {
+      const serverMsg = res.message
+        ? `Erreur serveur — ${res.message}`
+        : 'Le serveur ne répond pas correctement. Réessaie dans un instant.';
       const map = {
         'name':           ['signup-name-error', 'Nom requis (2 caractères minimum).'],
         'email-format':   ['signup-email-error', 'Format e-mail invalide.'],
         'email-taken':    ['signup-email-error', 'Un compte existe déjà avec cet e-mail.'],
         'password-weak':  ['signup-password-error', 'Mot de passe trop faible (8 caractères minimum).'],
         'rate-limit':     ['signup-form-error', 'Trop de tentatives. Réessaie dans 15 minutes.'],
-        'server':         ['signup-form-error', 'Le serveur ne répond pas correctement. Réessaie dans un instant.'],
+        'network':        ['signup-form-error', 'Pas de connexion au serveur. Vérifie ton réseau.'],
+        'server':         ['signup-form-error', serverMsg],
       };
       const [errId, msg] = map[res.error] || ['signup-form-error', 'Création impossible.'];
       const inputId = errId.replace('-error', '');
@@ -1177,7 +1181,11 @@
         'no-account':     'Aucun compte avec cet e-mail.',
         'wrong-password': 'Mot de passe incorrect.',
         'rate-limit':     'Trop de tentatives. Réessaie dans 15 minutes.',
-        'server':         'Le serveur ne répond pas correctement. Réessaie dans un instant.',
+        'invalid-input':  'Données invalides (email ou mot de passe).',
+        'network':        'Pas de connexion au serveur. Vérifie ton réseau.',
+        'server':         res.message
+                            ? `Erreur serveur — ${res.message}`
+                            : 'Le serveur ne répond pas correctement. Réessaie dans un instant.',
       };
       showFormBanner('login-form-error', map[res.error] || 'Connexion impossible.', 'error');
       return;
