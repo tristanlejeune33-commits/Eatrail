@@ -666,6 +666,55 @@
 
     // (cart-scan-input is handled by the change-event listener below — not click)
 
+    // ── Real barcode scanner ────────────────────────────────
+    if (e.target && e.target.id === 'cart-barcode-btn') {
+      if (!eat.api || !eat.api.currentUser) {
+        alert('Connecte-toi pour utiliser le scanner code-barres.');
+        return;
+      }
+      if (!eat.barcode || !eat.barcode.isAvailable()) {
+        alert('Ton navigateur ne supporte pas l\'accès caméra. Utilise un navigateur récent en HTTPS.');
+        return;
+      }
+      const result = document.getElementById('scan-result');
+      if (result) result.textContent = '';
+
+      eat.barcode.open({
+        onProduct: (product) => {
+          // Heuristic match: try product.name / brand against cart items.
+          const cart = eat.cart();
+          const candidates = [product.name, product.brand].filter(Boolean);
+          let ticked = null;
+          for (const cartItem of cart) {
+            if (cartItem.checked) continue;
+            const matches = candidates.some(c => {
+              const a = String(c || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+              const b = String(cartItem.name || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+              if (!a || !b) return false;
+              if (a === b) return true;
+              const wa = a.split(/\s+/).filter(w => w.length >= 4);
+              const wb = b.split(/\s+/);
+              return wa.some(w => wb.includes(w)) || a.includes(b) || b.includes(a);
+            });
+            if (matches) { eat.cartToggle(cartItem.id); ticked = cartItem.name; break; }
+          }
+          // Always add to pantry (the product is presumably bought / on hand).
+          if (product.name && eat.pantryAdd) {
+            const cleanName = String(product.name).trim().toLowerCase();
+            if (cleanName) eat.pantryAdd(cleanName);
+          }
+          if (ticked && result) {
+            const line = document.createElement('div');
+            line.style.cssText = 'padding:6px 10px;margin-top:6px;border-radius:6px;background:rgba(63,139,84,.12);color:var(--primary);font-size:13px;';
+            line.textContent = `✓ ${ticked} coché (${product.barcode})`;
+            result.appendChild(line);
+          }
+        },
+        onClose: () => render(),
+      });
+      return;
+    }
+
     // ── v1.1 — Étoiles d'avis (input) ───────────────────────
     const star = e.target.closest && e.target.closest('[data-star]');
     if (star) {

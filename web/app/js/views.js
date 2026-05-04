@@ -1511,10 +1511,13 @@ window.eat = window.eat || {};
 
         <div class="scan-panel">
           <div>
-            <h3>📸 Scanner un produit</h3>
-            <p>Prends en photo un produit (étiquette ou contenu) — Claude Vision détecte l'ingrédient et coche la ligne correspondante dans ton panier (et l'ajoute à tes provisions).</p>
-            <label for="cart-scan-input" class="btn" style="background:var(--gold);color:var(--ink);cursor:pointer;display:inline-block;">▶ Lancer un scan</label>
-            <input type="file" id="cart-scan-input" accept="image/*" capture="environment" style="display:none;" />
+            <h3>📡 Scanner un produit</h3>
+            <p>Deux options : pointe la <strong>caméra sur un code-barres</strong> (lecture instantanée, base Open Food Facts) ou prends une <strong>photo IA</strong> (Claude Vision détecte le contenu).</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+              <button type="button" class="btn" id="cart-barcode-btn" style="background:var(--primary);color:var(--white);">📡 Code-barres</button>
+              <label for="cart-scan-input" class="btn" style="background:var(--gold);color:var(--ink);cursor:pointer;">📸 Photo IA</label>
+              <input type="file" id="cart-scan-input" accept="image/*" capture="environment" style="display:none;" />
+            </div>
             <div class="scan-result" id="scan-result"></div>
           </div>
           <div class="scan-viewfinder">

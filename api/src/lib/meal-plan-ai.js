@@ -166,18 +166,29 @@ Pick exactly 7 dinners — one per dayOffset 0 through 6 — that respect hard r
       { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
     ],
     output_config: {
-      format: { type: 'json_schema', schema: RESPONSE_SCHEMA, name: 'weekly_meal_plan' },
+      format: { type: 'json_schema', schema: RESPONSE_SCHEMA },
       effort: 'medium',
     },
     messages: [{ role: 'user', content: userPrompt }],
   });
 
-  const textBlock = (response.content || []).find(b => b.type === 'text');
-  if (!textBlock) throw new Error('no_response');
-
-  let parsed;
-  try { parsed = JSON.parse(textBlock.text); }
-  catch { throw new Error('invalid_json'); }
+  // With output_config.format, the SDK puts the parsed JSON in `parsed_output`.
+  // Fall back to a raw text block (legacy / models that don't pre-parse).
+  let parsed = null;
+  if (response.parsed_output && typeof response.parsed_output === 'object') {
+    parsed = response.parsed_output;
+  } else {
+    const textBlock = (response.content || []).find(b => b.type === 'text');
+    if (textBlock && textBlock.text) {
+      try { parsed = JSON.parse(textBlock.text); } catch {}
+    }
+  }
+  if (!parsed) {
+    console.error('[meal-plan-ai] no parseable response. blocks:',
+      (response.content || []).map(b => b.type).join(','),
+      'parsed_output:', !!response.parsed_output);
+    throw new Error('no_response');
+  }
 
   const selections = parsed.selections || [];
   if (selections.length !== 7) throw new Error('wrong_count');

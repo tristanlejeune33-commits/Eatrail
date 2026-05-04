@@ -55,13 +55,16 @@ app.use(helmet({
         'https://api.mapbox.com',
       ],
       // 'unsafe-inline' for our small bootstrap inline scripts in views;
-      // 'unsafe-eval' is required by Mapbox GL JS (parses GLSL shaders via Function()).
-      'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://api.mapbox.com'],
+      // 'unsafe-eval' is required by Mapbox GL JS (GLSL shaders) AND html5-qrcode (decoder workers).
+      // jsdelivr hosts html5-qrcode (lazy-loaded only when the user clicks "Scan code-barres").
+      'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://api.mapbox.com', 'https://cdn.jsdelivr.net'],
       'connect-src': [
         "'self'",
         'https://api.mapbox.com',
         'https://events.mapbox.com',
         'https://*.tiles.mapbox.com',
+        'https://world.openfoodfacts.org',  // barcode → product lookup (free, public)
+        'https://cdn.jsdelivr.net',
       ],
       'style-src': [
         "'self'",
