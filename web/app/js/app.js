@@ -128,11 +128,18 @@
       location.hash = eat.routeUrl('recipes', [], q);
     }
 
-    // Pantry photo scan via OpenAI Vision
+    // Pantry photo scan via Claude Vision (server-side ANTHROPIC_API_KEY)
     if (e.target && e.target.id === 'pantry-scan-input') {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
       eat.scanPantryPhoto(file).then(() => render());
+    }
+
+    // Cart product scan: photo → Claude Vision → tick matching cart items
+    if (e.target && e.target.id === 'cart-scan-input') {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      eat.scanCartProduct(file).then(() => render());
     }
 
     // Geo radius slider — debounce update
@@ -657,33 +664,7 @@
       return;
     }
 
-    // ── v1.1 — Scanner mock ─────────────────────────────────
-    if (e.target && e.target.id === 'scan-btn') {
-      const btn = e.target;
-      const result = document.getElementById('scan-result');
-      const viewfinder = document.querySelector('.scan-viewfinder');
-      btn.disabled = true;
-      btn.textContent = '⋯ scan en cours…';
-      if (viewfinder) {
-        const flash = document.createElement('div');
-        flash.className = 'scan-flash';
-        viewfinder.appendChild(flash);
-        setTimeout(() => flash.remove(), 600);
-      }
-      setTimeout(() => {
-        const item = eat.cartFakeScan();
-        if (result) {
-          result.textContent = item
-            ? `✓ Scanné : ${item.name} — coché`
-            : 'Tout est déjà coché';
-        }
-        btn.disabled = false;
-        btn.textContent = '▶ Scanner un autre';
-        // re-render mais on garde le scan panel state visible un instant
-        setTimeout(render, 800);
-      }, 700);
-      return;
-    }
+    // (cart-scan-input is handled by the change-event listener below — not click)
 
     // ── v1.1 — Étoiles d'avis (input) ───────────────────────
     const star = e.target.closest && e.target.closest('[data-star]');

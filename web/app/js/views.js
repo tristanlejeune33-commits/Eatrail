@@ -1511,9 +1511,10 @@ window.eat = window.eat || {};
 
         <div class="scan-panel">
           <div>
-            <h3>📡 Scanner produit</h3>
-            <p>Lecture à puce : pointe ton téléphone sur l'étiquette code-barres. eatrail détecte l'ingrédient et coche la ligne.</p>
-            <button class="btn" id="scan-btn" style="background:var(--gold);color:var(--ink);">▶ Lancer un scan</button>
+            <h3>📸 Scanner un produit</h3>
+            <p>Prends en photo un produit (étiquette ou contenu) — Claude Vision détecte l'ingrédient et coche la ligne correspondante dans ton panier (et l'ajoute à tes provisions).</p>
+            <label for="cart-scan-input" class="btn" style="background:var(--gold);color:var(--ink);cursor:pointer;display:inline-block;">▶ Lancer un scan</label>
+            <input type="file" id="cart-scan-input" accept="image/*" capture="environment" style="display:none;" />
             <div class="scan-result" id="scan-result"></div>
           </div>
           <div class="scan-viewfinder">

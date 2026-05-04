@@ -416,25 +416,10 @@ window.eat = window.eat || {};
     },
   };
 
-  // ── v1.5 — Pantry photo scan (OpenAI Vision) ──────────────
-  const LS_OPENAI_KEY = 'eatrail.openai_key';
-  eat.openaiKey = function (newKey) {
-    if (typeof newKey === 'string') {
-      try { localStorage.setItem(LS_OPENAI_KEY, newKey.trim()); } catch {}
-      return newKey.trim();
-    }
-    try { return localStorage.getItem(LS_OPENAI_KEY) || ''; } catch { return ''; }
-  };
-
-  function fileToBase64DataUrl(file) {
-    return new Promise((resolve, reject) => {
-      const r = new FileReader();
-      r.onload = () => resolve(r.result);
-      r.onerror = reject;
-      r.readAsDataURL(file);
-    });
-  }
-
+  // ── Pantry photo scan ─────────────────────────────────────
+  // Server-side Anthropic Claude Vision via POST /api/pantry/scan.
+  // The ANTHROPIC_API_KEY lives ONLY on the server — clients never see it.
+  // No more client-side OpenAI key prompt or localStorage stash.
   function setScanStatus(msg, isError) {
     const el = document.getElementById('pantry-scan-status');
     if (!el) return;
@@ -442,80 +427,147 @@ window.eat = window.eat || {};
     el.style.color = isError ? '#A33B3B' : 'var(--muted)';
   }
 
+  // One-shot cleanup of the legacy OpenAI key cached in old browsers.
+  try { localStorage.removeItem('eatrail.openai_key'); } catch {}
+
   eat.scanPantryPhoto = async function (file) {
-    let key = eat.openaiKey();
-    if (!key) {
-      key = window.prompt('Colle ta clé OpenAI (stockée localement, sk-…). Pour révoquer plus tard : settings.');
-      if (!key) { setScanStatus('Annulé : aucune clé fournie.', true); return; }
-      eat.openaiKey(key);
+    if (!file) { setScanStatus('Aucun fichier fourni.', true); return; }
+    if (!eat.api) {
+      setScanStatus('API non chargée — recharge la page.', true);
+      return;
     }
-    setScanStatus('Lecture de l\'image…');
-    let dataUrl;
-    try { dataUrl = await fileToBase64DataUrl(file); }
-    catch (e) { setScanStatus('Impossible de lire le fichier.', true); return; }
-
-    setScanStatus('Analyse via OpenAI Vision (≈10s)…');
-    const body = {
-      model: 'gpt-4o-mini',
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'text', text:
-            'Liste tous les aliments / ingrédients visibles dans cette photo de garde-manger ou de frigo. ' +
-            'Inclus les emballages clairement identifiables (riz, pâtes, conserves, épices, fruits, légumes, viandes, fromages, etc.). ' +
-            'Réponds UNIQUEMENT en JSON : {"ingredients": ["tomate", "riz basmati", "lait", "..."]}. ' +
-            'Noms en français, singulier, en minuscules. Ne devine pas ce qui n\'est pas visible.'
-          },
-          { type: 'image_url', image_url: { url: dataUrl } }
-        ]
-      }],
-      response_format: { type: 'json_object' },
-      max_tokens: 800
-    };
-
-    let res;
-    try {
-      res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-        body: JSON.stringify(body)
-      });
-    } catch (e) { setScanStatus('Erreur réseau : ' + e.message, true); return; }
-
-    if (!res.ok) {
-      const txt = await res.text().catch(() => '');
-      if (res.status === 401) {
-        try { localStorage.removeItem(LS_OPENAI_KEY); } catch {}
-        setScanStatus('Clé OpenAI invalide (401). Réessaie.', true);
-      } else {
-        setScanStatus('OpenAI ' + res.status + ' : ' + txt.slice(0, 120), true);
-      }
+    if (!eat.api.currentUser) {
+      setScanStatus('Connecte-toi pour scanner ton garde-manger.', true);
       return;
     }
 
+    setScanStatus('Analyse Claude Vision (≈10s)…');
+
     let json;
-    try { json = await res.json(); }
-    catch (e) { setScanStatus('Réponse invalide.', true); return; }
+    try {
+      json = await eat.api.pantry.scan(file);
+    } catch (e) {
+      const code = e && e.code;
+      const msg =
+        code === 'no_photo' ? 'Aucune image envoyée.' :
+        code === 'unsupported_image_type' ? 'Format d\'image non supporté (JPEG/PNG/WEBP/GIF uniquement).' :
+        code === 'scan_unavailable' ? 'Scan IA non configuré côté serveur.' :
+        code === 'anthropic_error' ? 'Claude a rencontré une erreur — réessaie.' :
+        code === 'unauthorized' ? 'Connecte-toi pour scanner.' :
+        code === 'too_many_requests' ? 'Trop de scans récents — réessaie dans une minute.' :
+        (e && e.message) || 'Erreur inconnue';
+      setScanStatus('Erreur : ' + msg, true);
+      return;
+    }
 
-    const content = json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content;
-    if (!content) { setScanStatus('Aucun aliment détecté.', true); return; }
+    const items = Array.isArray(json.detected) ? json.detected : [];
+    if (items.length === 0) {
+      setScanStatus('Aucun aliment détecté sur la photo. Réessaie avec plus de lumière.', true);
+      return;
+    }
 
-    let parsed;
-    try { parsed = JSON.parse(content); }
-    catch (e) { setScanStatus('Parsing JSON échoué.', true); return; }
-
-    const items = Array.isArray(parsed.ingredients) ? parsed.ingredients : [];
-    if (items.length === 0) { setScanStatus('Aucun aliment détecté sur la photo.', true); return; }
-
+    // The server already inserted them into PantryItem rows. Mirror into
+    // localStorage cache so the synchronous views (`eat.pantry()`) see them
+    // immediately, without waiting for a background pull.
+    const cur = eat.pantry();
+    const set = new Set(cur);
     let added = 0;
     for (const it of items) {
       const norm = String(it).trim().toLowerCase();
-      if (!norm) continue;
-      const before = eat.pantry().length;
-      eat.pantryAdd(norm);
-      if (eat.pantry().length > before) added++;
+      if (norm && !set.has(norm)) { set.add(norm); added++; }
     }
-    setScanStatus(`✓ ${added} aliment${added > 1 ? 's' : ''} ajouté${added > 1 ? 's' : ''} (${items.length} détecté${items.length > 1 ? 's' : ''}).`);
+    safeWrite(LS_PANTRY, [...set]);
+
+    const detectedCount = items.length;
+    setScanStatus(`✓ ${added} aliment${added > 1 ? 's' : ''} ajouté${added > 1 ? 's' : ''} (${detectedCount} détecté${detectedCount > 1 ? 's' : ''}).`);
+  };
+
+  /**
+   * Scan d'un produit côté panier : photo → Claude Vision → tick les items
+   * du cart qui matchent. Réutilise /api/pantry/scan (la détection est
+   * identique ; on ajoute aussi au pantry par effet de bord, ce qui est
+   * normalement attendu — l'utilisateur achète le produit, donc il l'a chez lui).
+   */
+  function setCartScanResult(msg, isError) {
+    const el = document.getElementById('scan-result');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.color = isError ? '#A33B3B' : 'var(--ink)';
+  }
+
+  function normalizeName(s) {
+    return String(s || '').trim().toLowerCase()
+      .normalize('NFD').replace(/\p{Diacritic}/gu, '');
+  }
+
+  function ingredientMatchesCartItem(detected, cartItemName) {
+    const a = normalizeName(detected);
+    const b = normalizeName(cartItemName);
+    if (!a || !b) return false;
+    if (a === b) return true;
+    if (b.includes(a) || a.includes(b)) return true;
+    // Word-level overlap (e.g. "tomate cerise" vs "tomate")
+    const wa = new Set(a.split(/\s+/));
+    const wb = new Set(b.split(/\s+/));
+    for (const w of wa) if (w.length >= 4 && wb.has(w)) return true;
+    return false;
+  }
+
+  eat.scanCartProduct = async function (file) {
+    if (!file) { setCartScanResult('Aucun fichier fourni.', true); return; }
+    if (!eat.api || !eat.api.currentUser) {
+      setCartScanResult('Connecte-toi pour utiliser le scan.', true);
+      return;
+    }
+
+    setCartScanResult('Analyse Claude Vision (≈10s)…');
+
+    let json;
+    try {
+      json = await eat.api.pantry.scan(file);
+    } catch (e) {
+      const code = e && e.code;
+      const msg =
+        code === 'unsupported_image_type' ? 'Format d\'image non supporté.' :
+        code === 'scan_unavailable' ? 'Scan IA non configuré côté serveur.' :
+        code === 'too_many_requests' ? 'Trop de scans récents — réessaie dans une minute.' :
+        (e && e.message) || 'Erreur inconnue';
+      setCartScanResult('Erreur : ' + msg, true);
+      return;
+    }
+
+    const detected = Array.isArray(json.detected) ? json.detected : [];
+    if (detected.length === 0) {
+      setCartScanResult('Aucun produit détecté. Réessaie avec plus de lumière.', true);
+      return;
+    }
+
+    // Tick matching items in the cart
+    const cart = readCart();
+    const tickedNames = [];
+    for (const cartItem of cart) {
+      if (cartItem.checked) continue;
+      const hit = detected.find(d => ingredientMatchesCartItem(d, cartItem.name));
+      if (hit) {
+        eat.cartToggle(cartItem.id);  // already syncs to API + localStorage
+        tickedNames.push(cartItem.name);
+      }
+    }
+
+    // Mirror detected ingredients into the local pantry cache too (the server
+    // already persisted them — this just keeps the synchronous getter in sync).
+    const pantrySet = new Set(eat.pantry());
+    for (const d of detected) {
+      const norm = normalizeName(d);
+      if (norm) pantrySet.add(norm);
+    }
+    safeWrite(LS_PANTRY, [...pantrySet]);
+
+    if (tickedNames.length > 0) {
+      setCartScanResult(`✓ Produit reconnu — ${tickedNames.length} ligne${tickedNames.length > 1 ? 's' : ''} cochée${tickedNames.length > 1 ? 's' : ''} (${tickedNames.slice(0, 3).join(', ')}${tickedNames.length > 3 ? '…' : ''}).`);
+    } else {
+      setCartScanResult(`Détecté : ${detected.slice(0, 4).join(', ')}${detected.length > 4 ? '…' : ''} — aucun item correspondant dans ton panier (ajouté à tes provisions).`);
+    }
   };
 
   /**
