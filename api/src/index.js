@@ -55,7 +55,9 @@ app.use(helmet({
         'https://*.tiles.mapbox.com',
         'https://api.mapbox.com',
       ],
-      'script-src': ["'self'", 'https://api.mapbox.com'],
+      // 'unsafe-inline' for our small bootstrap inline scripts in views;
+      // 'unsafe-eval' is required by Mapbox GL JS (parses GLSL shaders via Function()).
+      'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://api.mapbox.com'],
       'connect-src': [
         "'self'",
         'https://api.mapbox.com',
