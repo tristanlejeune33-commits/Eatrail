@@ -529,24 +529,88 @@ window.eat = window.eat || {};
   };
 
   /**
-   * Pantry AI mock : pour chaque recette, calcule un % de couverture
-   * en comparant les noms d'ingrédients (substring match) avec le pantry.
+   * Pantry → recipe coverage matcher.
+   *
+   * Compares pantry items (free-form FR ingredient names) against each recipe's
+   * ingredient list. Robust to:
+   *   - case (lowercase)
+   *   - accents ("œuf" ≡ "oeuf", "épice" ≡ "epice")
+   *   - singular/plural (drops trailing 's')
+   *   - parenthesized notes ("ail (gousse)" → "ail")
+   *   - generic descriptors ("fraîche", "demi-écrémé") via word-level overlap
+   *
+   * Algorithm: split both sides into significant words (≥3 chars), check for
+   * any overlap. Falls back to substring containment for short tokens like "ail".
    */
+  function pantryNormalize(s) {
+    return String(s || '')
+      .toLowerCase()
+      .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+      .replace(/œ/g, 'oe').replace(/æ/g, 'ae')
+      .replace(/\([^)]*\)/g, ' ')                     // strip "(gousse)" etc.
+      .replace(/[^a-z0-9\s'-]+/g, ' ')                // punctuation → space
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  function pantryWords(s) {
+    const norm = pantryNormalize(s);
+    const out = new Set();
+    for (let w of norm.split(/[\s'-]+/)) {
+      if (!w) continue;
+      // drop trailing 's' for poor-man's plural folding ("tomates" → "tomate")
+      if (w.length > 3 && w.endsWith('s')) w = w.slice(0, -1);
+      if (w.length >= 3) out.add(w);
+    }
+    return out;
+  }
+  // Tokens too generic to count as a real match on their own.
+  const PANTRY_STOPWORDS = new Set([
+    'frais', 'fraiche', 'sec', 'seche', 'demi', 'ecreme', 'entier', 'entiere',
+    'bio', 'gros', 'grosse', 'petit', 'petite', 'moyen', 'moyenne',
+    'rouge', 'verte', 'vert', 'jaune', 'blanc', 'blanche', 'noire', 'noir',
+    'doux', 'douce', 'fort', 'forte', 'cru', 'crue', 'cuit', 'cuite',
+    'cuillere', 'tasse', 'pince', 'sel', 'poivre', 'eau', 'huile',
+  ]);
+
+  function ingredientCoveredBy(ingredientName, pantryWordsCache) {
+    const ingWords = pantryWords(ingredientName);
+    if (ingWords.size === 0) return false;
+    for (const [, pWords] of pantryWordsCache) {
+      // Any non-stopword word overlap → match
+      for (const iw of ingWords) {
+        if (PANTRY_STOPWORDS.has(iw)) continue;
+        if (pWords.has(iw)) return true;
+      }
+      // Short pantry token (e.g. "ail") → also try substring of full ingredient name
+      for (const pw of pWords) {
+        if (pw.length <= 4 && pantryNormalize(ingredientName).includes(pw)) return true;
+      }
+    }
+    return false;
+  }
+
   eat.pantryMatches = function () {
     const items = eat.pantry();
     if (!items.length) return [];
+
+    // Pre-tokenize pantry once
+    const pantryWordsCache = new Map();
+    for (const p of items) {
+      pantryWordsCache.set(p, pantryWords(p));
+    }
+
     return eat.allRecipes()
       .map(r => {
         let matched = 0;
-        for (const ing of r.ingredients) {
-          const n = ing.name.toLowerCase();
-          if (items.some(p => n.includes(p) || p.includes(n.split(' ')[0]))) matched++;
+        for (const ing of (r.ingredients || [])) {
+          if (ingredientCoveredBy(ing.name, pantryWordsCache)) matched++;
         }
-        const pct = Math.round((matched / r.ingredients.length) * 100);
-        return { recipe: r, pct, matched, total: r.ingredients.length };
+        const total = (r.ingredients || []).length || 1;
+        const pct = Math.round((matched / total) * 100);
+        return { recipe: r, pct, matched, total };
       })
-      .filter(m => m.pct > 0)
-      .sort((a, b) => b.pct - a.pct)
+      .filter(m => m.matched > 0)
+      .sort((a, b) => (b.pct - a.pct) || (b.matched - a.matched))
       .slice(0, 8);
   };
 
