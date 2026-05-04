@@ -124,4 +124,35 @@ router.post('/sessions/revoke-all', requireAuth, async (req, res) => {
   return res.json({ ok: true });
 });
 
+// POST /api/auth/me/password — change own password (auth required, verify current)
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1).max(200),
+  newPassword: z.string().min(8).max(200),
+});
+
+router.post('/me/password', authLimiter, requireAuth, async (req, res) => {
+  const { data, error } = validate(changePasswordSchema, req.body);
+  if (error) return sendValidationError(res, error);
+
+  // Refetch user with password hash (req.user from middleware has it but stay defensive).
+  const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+  if (!user) return res.status(404).json({ error: 'not_found' });
+
+  const ok = await verifyPassword(data.currentPassword, user.passwordHash);
+  if (!ok) {
+    await prisma.authEvent.create({
+      data: { email: user.email, userId: user.id, kind: 'password_change_failed', ipHash: hashIp(req.ip), userAgent: (req.get('User-Agent') || '').slice(0, 500) },
+    });
+    return res.status(401).json({ error: 'wrong_current_password', message: 'Mot de passe actuel incorrect.' });
+  }
+
+  const newHash = await hashPassword(data.newPassword);
+  await prisma.user.update({ where: { id: user.id }, data: { passwordHash: newHash } });
+  await prisma.authEvent.create({
+    data: { email: user.email, userId: user.id, kind: 'password_changed', ipHash: hashIp(req.ip), userAgent: (req.get('User-Agent') || '').slice(0, 500) },
+  });
+
+  return res.json({ ok: true });
+});
+
 export default router;

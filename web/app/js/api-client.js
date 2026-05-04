@@ -125,6 +125,8 @@
       logout: () => call('POST', '/api/auth/logout'),
       me: () => call('GET', '/api/auth/me'),
       revokeAll: () => call('POST', '/api/auth/sessions/revoke-all'),
+      changePassword: (currentPassword, newPassword) =>
+        call('POST', '/api/auth/me/password', { currentPassword, newPassword }),
     },
 
     // ─── RECIPES (public) ───────────────────────────────────

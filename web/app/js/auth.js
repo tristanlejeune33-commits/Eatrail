@@ -267,12 +267,39 @@ window.eat = window.eat || {};
   eat.auth.syncDataAfterLogin = syncDataAfterLogin;
   eat.auth.migrateGuestDataToApi = migrateGuestDataToApi;
 
+  // ─── Change password (live) ─────────────────────────────
+  /**
+   * POST /api/auth/me/password — verifies currentPwd then sets newPwd.
+   * Returns { ok, error?, message? } where error ∈ {
+   *   not-authenticated | password-weak | wrong-current | rate-limit |
+   *   network | offline | server }
+   */
+  eat.auth.changePassword = async function (currentPwd, newPwd) {
+    if (!_apiUser) return { ok: false, error: 'not-authenticated' };
+    const strength = eat.auth.passwordStrength(newPwd);
+    if (!strength.isAcceptable) return { ok: false, error: 'password-weak' };
+
+    if (!eat.api) return { ok: false, error: 'offline', message: 'API non chargée' };
+    try { await eat.api.ready; } catch {}
+    if (!eat.api.isOnline) return { ok: false, error: 'offline', message: 'Hors-ligne. Réessaie quand la connexion revient.' };
+
+    try {
+      await eat.api.auth.changePassword(currentPwd, newPwd);
+      return { ok: true };
+    } catch (err) {
+      if (err.code === 'wrong_current_password') return { ok: false, error: 'wrong-current' };
+      if (err.code === 'invalid_input') return { ok: false, error: 'password-weak', message: err.message };
+      if (err.code === 'too_many_requests') return { ok: false, error: 'rate-limit' };
+      if (err.code === 'unauthorized') return { ok: false, error: 'not-authenticated' };
+      if (err.code === 'network') return { ok: false, error: 'network', message: err.message };
+      console.error('[auth] changePassword error:', err.code, err.status, err.message);
+      return { ok: false, error: 'server', message: `${err.code || 'http_' + (err.status||'?')}: ${err.message || ''}` };
+    }
+  };
+
   // ─── Stubs (TODO — require API endpoints) ───────────────
-  // The following operations used to work against a localStorage account.
-  // The localStorage account system was removed in cleanup #6 (May 2026).
-  // To re-enable them, implement the matching API endpoints and call eat.api.auth.* here:
+  // To re-enable these, implement the matching API endpoints and call eat.api.auth.* here:
   //   updateProfile  → PATCH  /api/auth/me            (name, email, avatarColor)
-  //   changePassword → POST   /api/auth/me/password   (currentPassword, newPassword)
   //   deleteAccount  → DELETE /api/auth/me            (password)
   //   requestReset / applyReset → email-based via Resend (POST /api/auth/forgot, POST /api/auth/reset)
 
@@ -280,7 +307,6 @@ window.eat = window.eat || {};
   const INVALID_TOKEN = { ok: false, error: 'invalid-token' };
 
   eat.auth.updateProfile = async () => NOT_IMPL;
-  eat.auth.changePassword = async () => NOT_IMPL;
   eat.auth.deleteAccount = async () => NOT_IMPL;
   eat.auth.requestReset = () => ({ ok: true, token: null, exists: false }); // safe stub: never leaks email existence
   eat.auth.checkResetToken = () => null;                                     // → vue reset affiche "lien invalide"
