@@ -3848,3 +3848,70 @@ textarea:focus-visible {
   background: rgba(63, 139, 84, .08);
 }
 
+/* ── Category bar (recipes page) ────────────────────────── */
+.cat-row-wrap {
+  margin: 14px 0 18px;
+  /* Bleed to viewport edges on mobile so users can swipe through everything */
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding-left: clamp(16px, 4vw, 32px);
+  padding-right: clamp(16px, 4vw, 32px);
+  overflow: hidden;
+}
+.cat-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  padding-bottom: 8px;       /* room for shadow */
+  padding-top: 4px;
+}
+.cat-row::-webkit-scrollbar { display: none; }
+
+.cat-card {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  width: 92px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px;
+  padding: 14px 8px;
+  background: var(--white);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  text-decoration: none;
+  color: var(--ink);
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform .12s, border-color .12s, background .12s, box-shadow .12s;
+}
+.cat-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .06);
+}
+.cat-card.is-active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--white);
+  box-shadow: 0 6px 18px rgba(63, 139, 84, .25);
+}
+.cat-card-emoji {
+  font-size: 28px;
+  line-height: 1;
+}
+.cat-card-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .cat-card { width: 84px; padding: 12px 6px; border-radius: 14px; }
+  .cat-card-emoji { font-size: 24px; }
+  .cat-card-label { font-size: 11px; }
+}
+

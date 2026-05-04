@@ -319,11 +319,23 @@ window.eat = window.eat || {};
       return q;
     };
 
-    const catChips = eat.CATEGORIES.map(c => {
-      const active = filters.category === c.id;
-      const next = active ? '' : c.id;
-      return `<a class="filter-chip ${active ? 'is-active' : ''}" href="${eat.routeUrl('recipes', [], queryFor({ category: next }))}">${c.emoji} ${esc(c.label)}</a>`;
-    }).join('');
+    // Visual category bar (replaces a collapsed <details> with chips that
+    // got lost in the noise). Cards with big emoji + label, scrolls
+    // horizontally on mobile, "Tous" pill at the start to reset.
+    const catCards = [
+      `<a class="cat-card ${!filters.category ? 'is-active' : ''}" href="${eat.routeUrl('recipes', [], queryFor({ category: '' }))}">
+        <span class="cat-card-emoji">🍽</span>
+        <span class="cat-card-label">Tous</span>
+      </a>`,
+      ...eat.CATEGORIES.map(c => {
+        const active = filters.category === c.id;
+        const next = active ? '' : c.id;
+        return `<a class="cat-card ${active ? 'is-active' : ''}" href="${eat.routeUrl('recipes', [], queryFor({ category: next }))}">
+          <span class="cat-card-emoji">${c.emoji}</span>
+          <span class="cat-card-label">${esc(c.label)}</span>
+        </a>`;
+      }),
+    ].join('');
 
     const moodChips = moodOptions.map(m => {
       const active = filters.mood === m;
@@ -385,10 +397,9 @@ window.eat = window.eat || {};
           ${hasFilters ? `<a class="btn btn-ghost btn-sm" href="${eat.routeUrl('recipes')}">↺ Réinitialiser</a>` : ''}
         </div>
 
-        <details class="filter-bar" style="display:block;padding:0;background:transparent;border:none;margin-bottom:14px;">
-          <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--primary);padding:6px 0;">Catégories ${filters.category ? `(${eat.categoryMeta(filters.category).label})` : ''}</summary>
-          <div class="filter-group" style="margin-top:10px;">${catChips}</div>
-        </details>
+        <div class="cat-row-wrap">
+          <div class="cat-row">${catCards}</div>
+        </div>
 
         <details class="filter-bar" style="display:block;padding:0;background:transparent;border:none;margin-bottom:14px;">
           <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--primary);padding:6px 0;">Humeur ${filters.mood ? `(${filters.mood})` : ''}</summary>

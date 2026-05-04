@@ -687,8 +687,19 @@
     }
 
     if (e.target && e.target.id === 'pantry-clear') {
-      try { localStorage.removeItem('eatrail.v1.pantry'); } catch {}
-      render();
+      if (!confirm('Vider toutes tes provisions ?')) return;
+      // Clear API first (when logged in) then the local cache. The localStorage
+      // key is account-scoped via scopedKey() — using the bare 'eatrail.v1.pantry'
+      // misses the connected user's actual storage.
+      (async () => {
+        if (eat.api && eat.api.currentUser) {
+          try { await eat.api.pantry.clear(); }
+          catch (err) { console.warn('[pantry] API clear failed:', err.message); }
+        }
+        if (eat.pantryClear) eat.pantryClear();          // scoped LS clear + sync hook
+        else { try { localStorage.removeItem('eatrail.v1.pantry'); } catch {} }
+        render();
+      })();
       return;
     }
 

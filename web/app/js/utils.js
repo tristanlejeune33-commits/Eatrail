@@ -241,6 +241,14 @@ window.eat = window.eat || {};
     }
   };
 
+  /** Clear all pantry items (account-scoped LS + API). */
+  eat.pantryClear = function () {
+    safeWrite(LS_PANTRY, []);
+    if (eat.api && eat.api.currentUser) {
+      eat.api.pantry.clear().catch(e => console.warn('[sync] pantry clear:', e.message));
+    }
+  };
+
   // ── v1.7 — Meal planner (localStorage fallback + API sync) ──
   const LS_MEAL_PLAN = 'eatrail.v1.meal_plan';
   const SLOTS = ['BREAKFAST','LUNCH','DINNER','SNACK'];
@@ -367,33 +375,50 @@ window.eat = window.eat || {};
     },
 
     // ─── Date helpers (week navigation) ───────────────────
-    todayISO() {
-      const d = new Date();
+    // ── Date helpers — UTC arithmetic everywhere ─────────────
+    // The previous version mixed local-time arithmetic (`new Date(iso+'T00:00:00')`,
+    // `getDay`, `setDate`) with `toISOString()` which converts to UTC. In timezones
+    // east of UTC (like Europe/Paris UTC+1/+2) this shifted output dates by a full
+    // day, leading to the "9-8 mai" bug where start > end. Now we parse the ISO
+    // string ourselves and use UTC math throughout.
+    _parseISO(dateISO) {
+      const [y, m, d] = String(dateISO).split('-').map(Number);
+      return new Date(Date.UTC(y, (m || 1) - 1, d || 1));
+    },
+    _toISO(d) {
       return d.toISOString().slice(0, 10);
     },
 
-    // Returns Monday of the week containing `dateISO`
+    todayISO() {
+      const now = new Date();
+      // local "today" so users see today wherever they live
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    },
+
+    // Returns Monday of the week containing `dateISO` (ISO 8601 week, Mon-Sun)
     weekStart(dateISO) {
-      const d = new Date(dateISO + 'T00:00:00');
-      const day = d.getDay();             // 0 = Sun
+      const d = eat.mealPlan._parseISO(dateISO);
+      const day = d.getUTCDay();              // 0 = Sun
       const diff = (day === 0 ? -6 : 1 - day);
-      d.setDate(d.getDate() + diff);
-      return d.toISOString().slice(0, 10);
+      d.setUTCDate(d.getUTCDate() + diff);
+      return eat.mealPlan._toISO(d);
     },
 
     weekEnd(dateISO) {
-      const d = new Date(eat.mealPlan.weekStart(dateISO) + 'T00:00:00');
-      d.setDate(d.getDate() + 6);
-      return d.toISOString().slice(0, 10);
+      const d = eat.mealPlan._parseISO(eat.mealPlan.weekStart(dateISO));
+      d.setUTCDate(d.getUTCDate() + 6);
+      return eat.mealPlan._toISO(d);
     },
 
     addDaysISO(dateISO, days) {
-      const d = new Date(dateISO + 'T00:00:00');
-      d.setDate(d.getDate() + days);
-      return d.toISOString().slice(0, 10);
+      const d = eat.mealPlan._parseISO(dateISO);
+      d.setUTCDate(d.getUTCDate() + days);
+      return eat.mealPlan._toISO(d);
     },
 
-    // Format date as "Lun 3 mai" / "Aujourd'hui" / "Demain"
     fmtDayLabel(dateISO) {
       const today = eat.mealPlan.todayISO();
       const tomorrow = eat.mealPlan.addDaysISO(today, 1);
@@ -401,18 +426,20 @@ window.eat = window.eat || {};
       if (dateISO === tomorrow) return 'Demain';
       const days = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
       const months = ['jan','fév','mar','avr','mai','juin','juil','août','sep','oct','nov','déc'];
-      const d = new Date(dateISO + 'T00:00:00');
-      return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+      const d = eat.mealPlan._parseISO(dateISO);
+      return `${days[d.getUTCDay()]} ${d.getUTCDate()} ${months[d.getUTCMonth()]}`;
     },
 
     fmtWeekRange(weekStartISO) {
-      const start = new Date(weekStartISO + 'T00:00:00');
-      const end = new Date(eat.mealPlan.weekEnd(weekStartISO) + 'T00:00:00');
+      const startISO = eat.mealPlan.weekStart(weekStartISO);
+      const endISO = eat.mealPlan.weekEnd(weekStartISO);
+      const start = eat.mealPlan._parseISO(startISO);
+      const end = eat.mealPlan._parseISO(endISO);
       const months = ['jan','fév','mars','avril','mai','juin','juil','août','sep','oct','nov','déc'];
-      if (start.getMonth() === end.getMonth()) {
-        return `${start.getDate()}-${end.getDate()} ${months[start.getMonth()]} ${start.getFullYear()}`;
+      if (start.getUTCMonth() === end.getUTCMonth()) {
+        return `${start.getUTCDate()}-${end.getUTCDate()} ${months[start.getUTCMonth()]} ${start.getUTCFullYear()}`;
       }
-      return `${start.getDate()} ${months[start.getMonth()]} - ${end.getDate()} ${months[end.getMonth()]} ${start.getFullYear()}`;
+      return `${start.getUTCDate()} ${months[start.getUTCMonth()]} - ${end.getUTCDate()} ${months[end.getUTCMonth()]} ${start.getUTCFullYear()}`;
     },
   };
 
