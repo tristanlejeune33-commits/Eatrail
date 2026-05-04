@@ -1249,6 +1249,18 @@ window.eat = window.eat || {};
   // CALENDAR (meal planner)
   // ─────────────────────────────────────────────────────────
 
+  /** Safe label: never blank, falls back to a visible string if fmtWeekRange dies. */
+  function safeWeekLabel(weekStart) {
+    try {
+      const lbl = eat.mealPlan.fmtWeekRange(weekStart);
+      if (lbl && String(lbl).trim()) return lbl;
+      console.warn('[calendar] fmtWeekRange returned empty for', weekStart);
+    } catch (e) {
+      console.error('[calendar] fmtWeekRange threw for', weekStart, e);
+    }
+    return weekStart ? `Semaine du ${weekStart}` : 'Cette semaine';
+  }
+
   eat.viewCalendar = function (query) {
     const today = eat.mealPlan.todayISO();
     const weekStart = query.week || eat.mealPlan.weekStart(today);
@@ -1305,7 +1317,7 @@ window.eat = window.eat || {};
           <div class="cal-week-nav">
             <a class="btn btn-ghost btn-sm" href="${eat.routeUrl('calendar', [], { week: prevWeek })}">←</a>
             <div class="cal-week-label">
-              <strong id="cal-week-label">${esc(eat.mealPlan.fmtWeekRange(weekStart))}</strong>
+              <strong id="cal-week-label">${esc(safeWeekLabel(weekStart))}</strong>
               <a href="${eat.routeUrl('calendar')}" class="cal-today-link">Aujourd'hui</a>
             </div>
             <a class="btn btn-ghost btn-sm" href="${eat.routeUrl('calendar', [], { week: nextWeek })}">→</a>
