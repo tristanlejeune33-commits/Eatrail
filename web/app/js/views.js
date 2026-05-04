@@ -283,6 +283,10 @@ window.eat = window.eat || {};
     // v1.4 — pagination : page courante, 30 cards par page
     const PAGE_SIZE = 30;
     const page = Math.max(1, parseInt(query.page, 10) || 1);
+    // Default to "main" (déjeuner/dîner) so users searching "what to cook
+    // for dinner" don't see desserts mixed in. Explicit "all" or any other
+    // type via ?meal= overrides.
+    const mealType = query.meal || 'main';
     const filters = {
       q: query.q || '',
       country: query.country || '',
@@ -292,6 +296,10 @@ window.eat = window.eat || {};
       excludeAllergens
     };
     let results = eat.searchRecipes(filters);
+    // Meal-type filter (post-search so the count stays meaningful per tab)
+    if (mealType !== 'all') {
+      results = results.filter(r => eat.recipeMealType(r) === mealType);
+    }
     const totalBeforePrefs = results.length;
 
     // v1.3 : applique les préférences du compte par défaut (sauf opt-out)
@@ -315,9 +323,31 @@ window.eat = window.eat || {};
     // helper pour rebuild query string sans les filtres internes
     const queryFor = (extra) => {
       const q = { q: filters.q, country: filters.country, mood: filters.mood, diet: filters.diet, category: filters.category, noallergens: excludeAllergens.join(',') };
+      // Preserve meal-type unless explicitly overridden in `extra`
+      if (mealType !== 'main') q.meal = mealType;
       Object.assign(q, extra);
+      // Strip empty/default values so URLs stay clean
+      if (q.meal === 'main' || q.meal === '') delete q.meal;
       return q;
     };
+
+    // ── Meal type tabs (Tous / Petit-déj / Plats / Desserts / Boissons) ──
+    const counts = eat.mealTypeCounts();
+    const tabDefs = [
+      { id: 'main',      label: 'Plats',      emoji: '🍽',  count: counts.main },
+      { id: 'breakfast', label: 'Petit-déj',  emoji: '🥐',  count: counts.breakfast },
+      { id: 'dessert',   label: 'Desserts',   emoji: '🍰',  count: counts.dessert },
+      { id: 'drink',     label: 'Boissons',   emoji: '🥤',  count: counts.drink },
+      { id: 'all',       label: 'Tout voir',  emoji: '📚', count: counts.total },
+    ];
+    const mealTabs = tabDefs.map(t => {
+      const active = mealType === t.id;
+      return `<a class="meal-tab ${active ? 'is-active' : ''}" href="${eat.routeUrl('recipes', [], queryFor({ meal: t.id === 'main' ? '' : t.id, page: '' }))}">
+        <span class="meal-tab-emoji">${t.emoji}</span>
+        <span class="meal-tab-label">${esc(t.label)}</span>
+        <span class="meal-tab-count">${t.count}</span>
+      </a>`;
+    }).join('');
 
     // Visual category bar (replaces a collapsed <details> with chips that
     // got lost in the noise). Cards with big emoji + label, scrolls
@@ -404,43 +434,47 @@ window.eat = window.eat || {};
 
         ${prefsBar}
 
-        <div class="filter-bar">
-          <div class="filter-search">
+        <!-- Tabs meal type — toujours visibles, défaut "Plats" -->
+        <div class="meal-tabs">${mealTabs}</div>
+
+        <!-- Barre principale compacte : recherche + pays + bouton "Filtres" + reset -->
+        <div class="filter-toolbar">
+          <div class="filter-toolbar-search">
+            <span class="filter-toolbar-search-icon">🔍</span>
             <input id="filter-q" type="search" placeholder="Chercher un plat, un pays…" value="${esc(filters.q)}" />
           </div>
-          <select id="filter-country" class="filter-chip">
-            <option value="">Tous les pays</option>
+          <select id="filter-country" class="filter-toolbar-select">
+            <option value="">🌍 Tous les pays</option>
             ${countryOptions}
           </select>
-          ${hasFilters ? `<a class="btn btn-ghost btn-sm" href="${eat.routeUrl('recipes')}">↺ Réinitialiser</a>` : ''}
+          ${(() => {
+            const advCount = (filters.mood ? 1 : 0) + (filters.diet ? 1 : 0) + excludeAllergens.length;
+            return `<button type="button" class="filter-toolbar-more ${advCount ? 'has-active' : ''}" data-toggle-advanced>
+              <span>⚙</span><span>Filtres</span>${advCount ? `<span class="filter-toolbar-badge">${advCount}</span>` : ''}
+            </button>`;
+          })()}
+          ${hasFilters ? `<a class="filter-toolbar-reset" href="${eat.routeUrl('recipes', [], queryFor({ q: '', country: '', mood: '', diet: '', category: '', noallergens: '', page: '' }))}" aria-label="Réinitialiser">↺</a>` : ''}
         </div>
 
+        <!-- Catégories en row scrollable (déjà bien) -->
         <div class="cat-row-wrap">
           <div class="cat-row">${catCards}</div>
         </div>
 
-        <div class="pill-section">
-          <div class="pill-section-head">
-            <h3 class="pill-section-title">Humeur</h3>
-            ${filters.mood ? `<span class="pill-section-active">${esc(filters.mood)}</span>` : ''}
+        <!-- Filtres avancés : panel collapsible (auto-open si filtre actif) -->
+        <div class="advanced-filters" id="advanced-filters" ${(filters.mood || filters.diet || excludeAllergens.length) ? '' : 'hidden'}>
+          <div class="adv-group">
+            <div class="adv-group-label">Humeur</div>
+            <div class="pill-row">${moodChips}</div>
           </div>
-          <div class="pill-row">${moodChips}</div>
-        </div>
-
-        <div class="pill-section">
-          <div class="pill-section-head">
-            <h3 class="pill-section-title">Régime</h3>
-            ${filters.diet ? `<span class="pill-section-active">${esc(filters.diet)}</span>` : ''}
+          <div class="adv-group">
+            <div class="adv-group-label">Régime</div>
+            <div class="pill-row">${dietChips}</div>
           </div>
-          <div class="pill-row">${dietChips}</div>
-        </div>
-
-        <div class="pill-section pill-section-allergen">
-          <div class="pill-section-head">
-            <h3 class="pill-section-title">⚠ Allergènes à exclure</h3>
-            ${excludeAllergens.length ? `<span class="pill-section-active is-warn">${excludeAllergens.length} actif${excludeAllergens.length > 1 ? 's' : ''}</span>` : ''}
+          <div class="adv-group adv-group-allergen">
+            <div class="adv-group-label">⚠ Allergènes à exclure</div>
+            <div class="pill-row">${allergenChips}</div>
           </div>
-          <div class="pill-row">${allergenChips}</div>
         </div>
 
         ${totalResults === 0

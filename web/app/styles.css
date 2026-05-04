@@ -4035,6 +4035,205 @@ textarea:focus-visible {
   .pill-chip { padding: 7px 12px; font-size: 12.5px; }
 }
 
+/* ────────────────────────────────────────────────────────
+ * Recipes page — modern compact filter UI
+ *
+ * Replaces the giant stacked sections with:
+ *   1. Meal-type tabs (Plats / Petit-déj / Desserts / Boissons / Tout)
+ *      — hard tabs, mutually exclusive, default = "Plats"
+ *   2. A single compact toolbar (search + country + Filtres button + reset)
+ *   3. The mood/diet/allergen filters live in a collapsible panel below
+ *      that opens via the Filtres button (auto-open if any are active).
+ * ──────────────────────────────────────────────────────── */
+
+/* Meal-type tabs */
+.meal-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--cream-deep);
+  padding: 4px;
+  border-radius: 14px;
+  margin: 18px 0 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.meal-tabs::-webkit-scrollbar { display: none; }
+.meal-tab {
+  flex: 1 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all .15s ease;
+  user-select: none;
+}
+.meal-tab:hover { color: var(--ink); }
+.meal-tab.is-active {
+  background: var(--white);
+  color: var(--ink);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+}
+.meal-tab-emoji { font-size: 16px; line-height: 1; }
+.meal-tab-count {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--cream-deep);
+  padding: 2px 7px;
+  border-radius: 999px;
+  margin-left: 2px;
+}
+.meal-tab.is-active .meal-tab-count {
+  background: var(--primary);
+  color: var(--white);
+}
+@media (max-width: 600px) {
+  .meal-tab { padding: 9px 12px; font-size: 12.5px; }
+  .meal-tab-count { display: none; }   /* Save mobile width */
+}
+
+/* Compact toolbar */
+.filter-toolbar {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.filter-toolbar-search {
+  flex: 1 1 auto;
+  position: relative;
+  min-width: 0;
+}
+.filter-toolbar-search input {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px 0 38px;
+  background: var(--white);
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+}
+.filter-toolbar-search input::placeholder { color: var(--muted); }
+.filter-toolbar-search input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+.filter-toolbar-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.filter-toolbar-select {
+  height: 42px;
+  padding: 0 32px 0 14px;
+  background: var(--white);
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='%235F6E62'><path d='M5 6L0 0h10z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+.filter-toolbar-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 42px;
+  padding: 0 14px;
+  background: var(--white);
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s ease;
+}
+.filter-toolbar-more:hover { border-color: var(--primary); }
+.filter-toolbar-more.is-open { border-color: var(--primary); background: rgba(63, 139, 84, .06); }
+.filter-toolbar-more.has-active { border-color: var(--primary); color: var(--primary); }
+.filter-toolbar-badge {
+  background: var(--primary);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  margin-left: 2px;
+}
+.filter-toolbar-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px; height: 42px;
+  background: var(--white);
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  color: var(--muted);
+  font-size: 18px;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: all .15s ease;
+}
+.filter-toolbar-reset:hover { color: var(--accent); border-color: var(--accent); }
+
+@media (max-width: 600px) {
+  .filter-toolbar { flex-wrap: wrap; gap: 6px; }
+  .filter-toolbar-search { flex: 1 1 100%; order: 1; }
+  .filter-toolbar-select { flex: 1 1 auto; order: 2; min-width: 0; font-size: 13px; }
+  .filter-toolbar-more { order: 3; }
+  .filter-toolbar-reset { order: 4; }
+  .filter-toolbar-more span:nth-child(2) {
+    /* hide the "Filtres" word on small screens — emoji + badge speak for themselves */
+    display: none;
+  }
+}
+
+/* Advanced filters panel (collapsible) */
+.advanced-filters {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 18px 8px;
+  margin-bottom: 18px;
+  animation: adv-slide .18s ease;
+}
+@keyframes adv-slide {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.adv-group { margin-bottom: 14px; }
+.adv-group-label {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .01em;
+  color: var(--muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.adv-group-allergen .adv-group-label { color: var(--accent); }
+
 /* ─────────────────────────────────────────────────────────
  * DESKTOP POLISH (≥ 1100 px)
  *

@@ -602,6 +602,18 @@
     }
   });
 
+  // Recipes page: toggle the "advanced filters" collapsible panel
+  document.addEventListener('click', (e) => {
+    const advBtn = e.target.closest && e.target.closest('[data-toggle-advanced]');
+    if (!advBtn) return;
+    const panel = document.getElementById('advanced-filters');
+    if (!panel) return;
+    const open = !panel.hasAttribute('hidden');
+    if (open) panel.setAttribute('hidden', '');
+    else panel.removeAttribute('hidden');
+    advBtn.classList.toggle('is-open', !open);
+  });
+
   // Geo bar buttons (delegated click)
   document.addEventListener('click', async (e) => {
     if (e.target && e.target.id === 'geo-enable') {

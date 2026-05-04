@@ -47,6 +47,91 @@ window.eat = window.eat || {};
   eat.recipeById = (id) => eat.allRecipes().find(r => r.id === id);
   eat.shopById = (id) => eat.allShops().find(s => s.id === id);
 
+  /**
+   * Classification du type de repas à partir du titre / catégorie / moods.
+   * Retourne 'breakfast' | 'dessert' | 'drink' | 'main' (par défaut).
+   *
+   * Heuristic-based plutôt qu'un champ explicite — évite de toucher aux 625
+   * fichiers de data. Mémoïzé sur recipe.id pour rester rapide.
+   *
+   * Ordre de priorité (le premier match gagne) :
+   *   1. Boissons (smoothie, lassi, cocktail, …)
+   *   2. Desserts (gâteau, tarte, sucré, …)
+   *   3. Petit-déjeuner (crêpe, granola, porridge, pancake…)
+   *   4. Sinon → main (déjeuner / dîner)
+   */
+  const _mealTypeCache = Object.create(null);
+  const MEAL_TYPE_LABELS = {
+    main:      { id: 'main',      label: 'Plats',       emoji: '🍽',  desc: 'Déjeuners & dîners' },
+    breakfast: { id: 'breakfast', label: 'Petit-déj',   emoji: '🥐',  desc: 'Le matin' },
+    dessert:   { id: 'dessert',   label: 'Desserts',    emoji: '🍰',  desc: 'Sucré, à la fin' },
+    drink:     { id: 'drink',     label: 'Boissons',    emoji: '🥤',  desc: 'À siroter' },
+  };
+  eat.MEAL_TYPES = ['main', 'breakfast', 'dessert', 'drink'];
+  eat.mealTypeMeta = (id) => MEAL_TYPE_LABELS[id] || MEAL_TYPE_LABELS.main;
+
+  function _classifyMealType(r) {
+    const title = String(r?.title || '').toLowerCase();
+    const cat = String(r?.category || '').toLowerCase();
+    const moods = (r?.moods || []).map(m => String(m).toLowerCase());
+    const t = (s) => title.includes(s) || cat.includes(s);
+
+    // 1. Boissons
+    if (t('smoothie') || t('lassi') || t('chai') || t('cocktail') || t('jus de ') ||
+        t('boisson') || t('infusion') || t('thé ') || t('thé au') ||
+        cat === 'boisson' || cat === 'drink') {
+      return 'drink';
+    }
+
+    // 2. Desserts
+    const dessertHints = [
+      'gâteau','tarte','mousse','glace','sorbet','pudding','cake','dessert',
+      'biscuit','cookie','tiramisu','crème ','crème brûlée','brownie','éclair',
+      'baklava','clafoutis','fondant','crumble','panna cotta','flan','macaron',
+      'soufflé','muffin','beignet','donut','churros','crêpe sucrée','pancake',
+      'cheesecake','sablé','financier','madeleine','meringue','profiterole',
+      'kanelbulle','knafeh','basbousa','suzette','riz au lait','far breton',
+      'chausson','tart ','tartelette',
+    ];
+    if (dessertHints.some(h => t(h))) return 'dessert';
+    if (cat === 'dessert' || cat === 'pâtisserie' || cat === 'patisserie' || cat === 'sucré' || cat === 'sucre') return 'dessert';
+
+    // 3. Petit-déjeuner — uniquement si vraiment évident. Une crêpe sucrée est
+    // déjà capturée comme dessert ; ici on vise les vrais breakfasts savoureux
+    // (mais "crêpe" simple peut être les deux).
+    const breakfastHints = [
+      'porridge','granola','oatmeal','overnight oats','muesli','congee',
+      'shakshuka','huevos rancheros','omelette du matin','french toast','pain perdu',
+      'avocado toast','tartine','pancake','waffle','gaufre',
+      'chia pudding','smoothie bowl','açaï','acai bowl','bircher',
+    ];
+    if (breakfastHints.some(h => t(h))) return 'breakfast';
+    if (cat === 'petit-déjeuner' || cat === 'petit-dejeuner' || cat === 'breakfast') return 'breakfast';
+
+    // 4. Defaut: plat (déjeuner/dîner)
+    return 'main';
+  }
+
+  /** Public: meal type d'une recette (mémoïzé). */
+  eat.recipeMealType = function (r) {
+    if (!r || !r.id) return 'main';
+    if (r.id in _mealTypeCache) return _mealTypeCache[r.id];
+    return (_mealTypeCache[r.id] = _classifyMealType(r));
+  };
+
+  /** Public: count par meal type sur tout le catalogue (mémoïzé). */
+  let _mealTypeCounts = null;
+  eat.mealTypeCounts = function () {
+    if (_mealTypeCounts) return _mealTypeCounts;
+    const counts = { main: 0, breakfast: 0, dessert: 0, drink: 0, total: 0 };
+    for (const r of eat.allRecipes()) {
+      counts.total++;
+      counts[eat.recipeMealType(r)]++;
+    }
+    _mealTypeCounts = counts;
+    return counts;
+  };
+
   /** Recettes uniques par origine (pour landing). */
   eat.uniqueOrigins = function () {
     const seen = new Set();
