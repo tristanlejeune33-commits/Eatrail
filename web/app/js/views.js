@@ -1342,7 +1342,7 @@ window.eat = window.eat || {};
       dayCells.push(`
         <div class="cal-day ${isToday ? 'is-today' : ''} ${isPast ? 'is-past' : ''}" data-date="${dateISO}">
           <div class="cal-day-head">
-            <h3>${esc(eat.mealPlan.fmtDayLabel(dateISO))}</h3>
+            <h3>${esc(eat.mealPlan.fmtDayShort(dateISO))}</h3>
             ${isToday ? '<span class="cal-today-badge">Aujourd\'hui</span>' : ''}
           </div>
           <div class="cal-slots">

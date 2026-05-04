@@ -3269,12 +3269,18 @@ textarea:focus-visible {
     padding: 10px 12px;
     background: var(--white);
     border-bottom: 1px solid var(--line);
+    /* Don't let the title or badge overflow into the next column */
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
   .cal-day-head h3 {
     font-size: 13px;
     text-transform: uppercase;
     letter-spacing: .04em;
     color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .cal-day.is-today .cal-day-head {
     background: var(--primary);
@@ -3282,7 +3288,10 @@ textarea:focus-visible {
   .cal-day.is-today .cal-day-head h3 {
     color: var(--white);
   }
-  .cal-today-badge { font-size: 9px; padding: 2px 6px; }
+  /* On desktop the green-filled header already screams "today", and the
+     "Aujourd'hui" badge text would overflow narrow 7-col columns and
+     visually clip the next day. Hide it; the color is the affordance. */
+  .cal-day.is-today .cal-today-badge { display: none; }
   .cal-slots {
     flex: 1;
     padding: 4px 0;

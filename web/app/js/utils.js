@@ -633,6 +633,18 @@ window.eat = window.eat || {};
       return `${days[d.getUTCDay()]} ${d.getUTCDate()} ${months[d.getUTCMonth()]}`;
     },
 
+    /** Always-short day label without today/tomorrow substitution.
+     *  Used in the calendar grid header where we visually mark the current
+     *  day with a colored background — substituting the date with
+     *  "Aujourd'hui" there would conflict with the badge AND collide with
+     *  the next column when the text overflows. */
+    fmtDayShort(dateISO) {
+      const days = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+      const months = ['jan','fév','mar','avr','mai','juin','juil','août','sep','oct','nov','déc'];
+      const d = eat.mealPlan._parseISO(dateISO);
+      return `${days[d.getUTCDay()]} ${d.getUTCDate()} ${months[d.getUTCMonth()]}`;
+    },
+
     fmtWeekRange(weekStartISO) {
       const startISO = eat.mealPlan.weekStart(weekStartISO);
       const endISO = eat.mealPlan.weekEnd(weekStartISO);
