@@ -2165,9 +2165,13 @@ window.eat = window.eat || {};
         const w = (p.cuisineWeights || {})[r.origin.country] || 0;
         const cls = w > 0 ? 'is-liked' : (w < 0 ? 'is-disliked' : '');
         const tog = w > 0 ? '♥' : (w < 0 ? '×' : '?');
+        const img = (window.EATRAIL_IMAGES || {})[r.id] || '';
+        // Background = gradient by default (instant render, no flash if image fails);
+        // an <img> overlay on top fades in when loaded, so users SEE the actual dish.
         return `
           <button type="button" class="plate-card ${cls}" style="background:${esc(r.gradient)}"
             data-onb-plate="${esc(r.id)}|${esc(r.origin.country)}">
+            ${img ? `<img class="plate-card-img" src="${esc(img)}" alt="" loading="lazy" onerror="this.remove();" />` : ''}
             <div class="plate-card-flag">${esc(r.origin.flag)}</div>
             <div class="plate-card-toggle">${tog}</div>
             <div class="plate-card-title">${esc(r.title)}</div>
@@ -2183,6 +2187,16 @@ window.eat = window.eat || {};
         <span class="level-emoji">${l.emoji}</span>
         <div class="level-label">${esc(l.label)}</div>
         <div class="level-desc">${esc(l.desc)}</div>
+      </button>
+    `).join('');
+
+    const userMoods = new Set(p.moods || []);
+    const moodsHtml = eat.prefs.MOODS.map(m => `
+      <button type="button" class="opt-card ${userMoods.has(m.id) ? 'is-selected' : ''}"
+        data-onb-mood="${esc(m.id)}">
+        <span class="opt-card-emoji">${m.emoji}</span>
+        <span class="opt-card-label">${esc(m.label)}</span>
+        <span class="opt-card-sub">${esc(m.desc)}</span>
       </button>
     `).join('');
 
@@ -2214,6 +2228,12 @@ window.eat = window.eat || {};
               <span>doux</span><span>moyen</span><span>fort</span><span>brûle-moi</span>
             </div>
           </div>
+        </div>
+
+        <div class="onb-section">
+          <div class="onb-section-title">Quel style te tente ?</div>
+          <div class="onb-section-help">Multi-sélection. Boost les recettes correspondantes (ex. "Sain" pour manger léger, "Gourmand" pour se faire plaisir).</div>
+          <div class="opt-grid">${moodsHtml}</div>
         </div>
 
         <div class="onb-section">

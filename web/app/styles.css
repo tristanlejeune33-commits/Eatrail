@@ -2530,9 +2530,13 @@ textarea:focus-visible {
   cursor: pointer;
   transition: all .15s;
   display: flex; flex-direction: column; gap: 6px; align-items: center;
+  justify-content: flex-start;
   font-family: inherit;
   color: var(--ink);
-  min-height: 88px;
+  /* min-height reserves vertical space for the severity sub-buttons that
+     appear when an allergen is selected — prevents the grid from "jumping"
+     and reflowing the unselected cards next to it. */
+  min-height: 132px;
   user-select: none;
 }
 .opt-card:hover {
@@ -2703,11 +2707,18 @@ textarea:focus-visible {
   padding: 12px;
   justify-content: flex-end;
 }
+.plate-card-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
 .plate-card::after {
   content: "";
   position: absolute; inset: 0;
-  background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,.5) 100%);
+  background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,.65) 100%);
   pointer-events: none;
+  z-index: 0;
 }
 .plate-card > * { position: relative; z-index: 1; }
 .plate-card-flag {
@@ -2810,7 +2821,9 @@ textarea:focus-visible {
   .plate-grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 400px) {
-  .opt-card { min-height: 80px; padding: 12px 8px; }
+  /* Smaller on tiny screens, but still big enough to fit the severity sub-buttons
+     when an allergen is selected — prevents the card layout from jumping. */
+  .opt-card { min-height: 120px; padding: 12px 8px; }
   .flag-grid { grid-template-columns: repeat(2, 1fr); }
   .level-grid { grid-template-columns: 1fr; }
 }

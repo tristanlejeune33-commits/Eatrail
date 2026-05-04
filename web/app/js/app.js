@@ -871,6 +871,18 @@
       return;
     }
 
+    // Mood (healthy / gourmand / comfort / etc.) — multi-select toggle
+    const moodBtn = e.target.closest && e.target.closest('[data-onb-mood], [data-prefs-mood]');
+    if (moodBtn) {
+      const id = moodBtn.getAttribute('data-onb-mood') || moodBtn.getAttribute('data-prefs-mood');
+      const p = eat.prefs.get();
+      const set = new Set(p.moods || []);
+      if (set.has(id)) set.delete(id); else set.add(id);
+      eat.prefs.patch({ moods: [...set] });
+      moodBtn.classList.toggle('is-selected');
+      return;
+    }
+
     // Niveau cuisinier
     const lvlBtn = e.target.closest && e.target.closest('[data-onb-level], [data-prefs-level]');
     if (lvlBtn) {

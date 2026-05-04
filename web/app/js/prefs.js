@@ -90,6 +90,21 @@ window.eat = window.eat || {};
     'J\'aime le piquant', 'Très épicé bienvenu', 'Brûle-moi'
   ];
 
+  /**
+   * Moods / styles de cuisine (multi-select, soft preference).
+   * Les ids matchent les valeurs `recipe.moods` (voir web/app/data/recipes/*.js).
+   */
+  eat.prefs.MOODS = [
+    { id: 'healthy',  label: 'Sain & léger',    emoji: '🥦', desc: 'Veggies, protéines, peu gras' },
+    { id: 'gourmand', label: 'Gourmand',        emoji: '🤤', desc: 'On se fait plaisir, sans culpabiliser' },
+    { id: 'comfort',  label: 'Réconfortant',    emoji: '🍲', desc: 'Plats qui te font du bien' },
+    { id: 'quick',    label: 'Rapide',          emoji: '⚡', desc: '< 30 min, semaine chargée' },
+    { id: 'festive',  label: 'Festif',          emoji: '🎉', desc: 'Pour recevoir, week-end' },
+    { id: 'wow',      label: 'Wow',             emoji: '✨', desc: 'Plat impressionnant' },
+    { id: 'street',   label: 'Street food',     emoji: '🌮', desc: 'Authentique, à la main' },
+    { id: 'spicy',    label: 'Épicé',           emoji: '🌶️', desc: 'Ça pique' },
+  ];
+
   /** Équipement de cuisine (multi-select). */
   eat.prefs.EQUIPMENT = [
     { id: 'wok',      label: 'Wok / poêle',          emoji: '🍳' },
@@ -127,6 +142,7 @@ window.eat = window.eat || {};
       dislikes: [],         // ['coriandre', ...]
       cuisines: [],         // ['Corée', 'Mexique', ...]
       cuisineWeights: {},   // { 'Corée': 2, 'Mexique': 1 } — implicite via swipe
+      moods: [],            // ['healthy', 'gourmand', ...]  soft preference
       spiceTolerance: 2,
       cookingLevel: 2,
       household: { adults: 2, kids: 0 },
@@ -273,6 +289,15 @@ window.eat = window.eat || {};
     if (cuisinesSet.has(recipe.origin.country)) score += 20;
     const w = (p.cuisineWeights || {})[recipe.origin.country] || 0;
     score += w * 6; // chaque "j'aime" sur swipe = +6
+
+    // ── Moods aimés (healthy / gourmand / comfort / etc.) ──
+    const userMoods = new Set(p.moods || []);
+    if (userMoods.size > 0) {
+      const recipeMoods = new Set(recipe.moods || []);
+      let moodHits = 0;
+      userMoods.forEach(m => { if (recipeMoods.has(m)) moodHits++; });
+      score += moodHits * 8;  // chaque mood matché = +8
+    }
 
     // ── Difficulté vs niveau cuisinier ───────────────
     const lvlGap = recipe.difficulty - (p.cookingLevel || 2);
