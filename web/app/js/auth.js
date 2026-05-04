@@ -225,7 +225,14 @@ window.eat = window.eat || {};
     const strength = eat.auth.passwordStrength(password);
     if (!strength.isAcceptable) return { ok: false, error: 'password-weak' };
 
-    // v1.8 — Try API first (if online)
+    // v1.9 — Wait for api init() to settle before deciding API vs localStorage.
+    // Without this, a fast user click can land while isOnline is still its
+    // initial `false` and we'd create a phantom localStorage-only account.
+    if (eat.api && eat.api.ready) {
+      try { await eat.api.ready; } catch {}
+    }
+
+    // Try API first (if online)
     if (eat.api && eat.api.isOnline) {
       try {
         const result = await eat.api.auth.signup(email, password, name, avatar);
@@ -241,12 +248,20 @@ window.eat = window.eat || {};
         if (err.code === 'email_taken') return { ok: false, error: 'email-taken' };
         if (err.code === 'invalid_input') return { ok: false, error: 'password-weak' };
         if (err.code === 'too_many_requests') return { ok: false, error: 'rate-limit' };
-        // Network/server error → fall through to localStorage fallback
-        console.warn('API signup failed, falling back to localStorage:', err.message);
+        if (err.code === 'network') {
+          // Genuinely unreachable → only now fall through to localStorage
+          console.warn('[auth] signup network error, falling back to localStorage:', err.message);
+        } else {
+          // Server reachable but returned an unexpected error.
+          // DO NOT fall through to localStorage — that would create a phantom
+          // account this device can't recover from another browser.
+          console.error('[auth] signup server error:', err.code, err.message);
+          return { ok: false, error: 'server', message: err.message };
+        }
       }
     }
 
-    // FALLBACK: localStorage signup (guest mode / API offline)
+    // FALLBACK: localStorage signup (guest mode / API genuinely offline)
     if (eat.auth.emailExists(email)) return { ok: false, error: 'email-taken' };
     const salt = randomSalt();
     const hash = await hashPassword(password, salt);
@@ -275,7 +290,12 @@ window.eat = window.eat || {};
     email = normEmail(email);
     if (!RX_EMAIL.test(email)) return { ok: false, error: 'email-format' };
 
-    // v1.8 — Try API first
+    // v1.9 — wait for api init() before deciding API vs localStorage
+    if (eat.api && eat.api.ready) {
+      try { await eat.api.ready; } catch {}
+    }
+
+    // Try API first
     if (eat.api && eat.api.isOnline) {
       try {
         const result = await eat.api.auth.login(email, password);
@@ -290,12 +310,19 @@ window.eat = window.eat || {};
       } catch (err) {
         if (err.code === 'invalid_credentials') return { ok: false, error: 'wrong-password' };
         if (err.code === 'too_many_requests') return { ok: false, error: 'rate-limit' };
-        // Network → fall through to localStorage
-        console.warn('API login failed, falling back to localStorage:', err.message);
+        if (err.code === 'network') {
+          // Genuinely unreachable → fall through to localStorage
+          console.warn('[auth] login network error, falling back to localStorage:', err.message);
+        } else {
+          // Server reachable but returned 5xx etc. Don't pretend the user
+          // exists locally — surface the error so they can retry.
+          console.error('[auth] login server error:', err.code, err.message);
+          return { ok: false, error: 'server', message: err.message };
+        }
       }
     }
 
-    // FALLBACK: localStorage login
+    // FALLBACK: localStorage login (only when API is genuinely unreachable)
     const accounts = readAccounts();
     const acc = accounts[email];
     if (!acc) return { ok: false, error: 'no-account' };

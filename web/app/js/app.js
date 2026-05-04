@@ -1060,7 +1060,9 @@
         'name':           ['signup-name-error', 'Nom requis (2 caractères minimum).'],
         'email-format':   ['signup-email-error', 'Format e-mail invalide.'],
         'email-taken':    ['signup-email-error', 'Un compte existe déjà avec cet e-mail.'],
-        'password-weak':  ['signup-password-error', 'Mot de passe trop faible (8 caractères minimum).']
+        'password-weak':  ['signup-password-error', 'Mot de passe trop faible (8 caractères minimum).'],
+        'rate-limit':     ['signup-form-error', 'Trop de tentatives. Réessaie dans 15 minutes.'],
+        'server':         ['signup-form-error', 'Le serveur ne répond pas correctement. Réessaie dans un instant.'],
       };
       const [errId, msg] = map[res.error] || ['signup-form-error', 'Création impossible.'];
       const inputId = errId.replace('-error', '');
@@ -1091,7 +1093,9 @@
       const map = {
         'email-format':   'Format e-mail invalide.',
         'no-account':     'Aucun compte avec cet e-mail.',
-        'wrong-password': 'Mot de passe incorrect.'
+        'wrong-password': 'Mot de passe incorrect.',
+        'rate-limit':     'Trop de tentatives. Réessaie dans 15 minutes.',
+        'server':         'Le serveur ne répond pas correctement. Réessaie dans un instant.',
       };
       showFormBanner('login-form-error', map[res.error] || 'Connexion impossible.', 'error');
       return;

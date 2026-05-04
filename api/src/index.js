@@ -32,8 +32,52 @@ const PORT = parseInt(process.env.PORT || '3001', 10);
 
 // ─── Middleware ────────────────────────────────────────────
 app.set('trust proxy', 1); // Railway puts us behind a proxy → enables req.ip + secure cookies
+// CSP: allowlist for the SPA's external dependencies.
+// Origins enabled:
+//   img-src   : Pexels (recipe photos), Wikipedia uploads, Google Static Maps tiles, Mapbox tiles, blob/data
+//   script-src: Mapbox GL JS (CDN)
+//   connect-src: Mapbox tile/style/events endpoints + same-origin /api/*
+//   style-src : self + 'unsafe-inline' (we inline a few small styles in JS)
+//   font-src  : self only — fonts are served from /assets if needed
 app.use(helmet({
-  contentSecurityPolicy: false, // SPA loads from another origin; CSP set there
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      'default-src': ["'self'"],
+      'img-src': [
+        "'self'",
+        'data:',
+        'blob:',
+        'https://images.pexels.com',
+        'https://upload.wikimedia.org',
+        'https://maps.googleapis.com',
+        'https://*.tiles.mapbox.com',
+        'https://api.mapbox.com',
+      ],
+      'script-src': ["'self'", 'https://api.mapbox.com'],
+      'connect-src': [
+        "'self'",
+        'https://api.mapbox.com',
+        'https://events.mapbox.com',
+        'https://*.tiles.mapbox.com',
+      ],
+      'style-src': [
+        "'self'",
+        "'unsafe-inline'",
+        'https://api.mapbox.com',
+        'https://fonts.googleapis.com',
+      ],
+      'font-src': ["'self'", 'data:', 'https://fonts.gstatic.com'],
+      'worker-src': ["'self'", 'blob:'],
+      'frame-ancestors': ["'self'"],
+      'base-uri': ["'self'"],
+      'form-action': ["'self'"],
+      'object-src': ["'none'"],
+    },
+  },
+  // Don't force HSTS in dev; Railway sets its own forwarded-proto
+  crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: false,
 }));
 
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')

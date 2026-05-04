@@ -71,11 +71,15 @@
 
   // ─── API namespace ───────────────────────────────────────
   const eat = (window.eat = window.eat || {});
+  // `ready` resolves when init() has finished (success OR confirmed-offline),
+  // so callers can `await eat.api.ready` before deciding API vs localStorage.
+  let _readyResolve;
   const api = (eat.api = {
     url: API,
     isOnline: false,
     currentUser: null,
     ApiError,
+    ready: new Promise((r) => { _readyResolve = r; }),
 
     // Health check (used to decide between online/offline mode)
     async ping() {
@@ -86,18 +90,31 @@
     },
 
     // Initialize: call /auth/me to detect logged-in state + server availability.
+    // - 200 OK with user        → isOnline=true, currentUser=user
+    // - 200 OK with user=null   → isOnline=true, currentUser=null  (server reachable, just not logged-in)
+    // - any non-network error   → isOnline=true (server IS responding, just rejected us)
+    // - network error           → isOnline=false  (browser can't reach the server at all)
     async init() {
       try {
-        const { user } = await call('GET', '/api/auth/me');
+        const data = await call('GET', '/api/auth/me');
         api.isOnline = true;
-        api.currentUser = user;
-        return user;
+        api.currentUser = data && data.user ? data.user : null;
+        console.log('[eatrail] API online — user:', api.currentUser ? api.currentUser.email : '(none)');
+        return api.currentUser;
       } catch (e) {
         if (e.code === 'network') {
           api.isOnline = false;
-          console.warn('[eatrail] API unreachable, staying offline (localStorage mode).');
+          console.warn('[eatrail] API unreachable — falling back to localStorage mode.');
+        } else {
+          // Server responded with an error (4xx/5xx). The server IS reachable,
+          // we're just not logged-in / hit some other condition. Stay online.
+          api.isOnline = true;
+          api.currentUser = null;
+          console.log('[eatrail] API online but /me returned', e.code);
         }
         return null;
+      } finally {
+        _readyResolve();
       }
     },
 

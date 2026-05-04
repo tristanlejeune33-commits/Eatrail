@@ -32,11 +32,18 @@ export async function createSession(userId, req) {
   return { token, expiresAt };
 }
 
+// SameSite: we use 'lax' in BOTH dev and prod because the SPA and the API
+// live on the SAME origin (single-service Railway deploy). 'lax' is more
+// robust on Safari iOS (which is increasingly strict on SameSite=none + ITP)
+// and still allows top-level navigation cookies. If we ever split frontend
+// onto a different origin (e.g. Vercel), set SAMESITE=none via env.
+const SAMESITE = process.env.SESSION_COOKIE_SAMESITE || 'lax';
+
 export function setSessionCookie(res, token, expiresAt) {
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
     secure: IS_PROD,
-    sameSite: IS_PROD ? 'none' : 'lax',
+    sameSite: SAMESITE,
     expires: expiresAt,
     path: '/',
   });
@@ -46,7 +53,7 @@ export function clearSessionCookie(res) {
   res.clearCookie(COOKIE_NAME, {
     httpOnly: true,
     secure: IS_PROD,
-    sameSite: IS_PROD ? 'none' : 'lax',
+    sameSite: SAMESITE,
     path: '/',
   });
 }
