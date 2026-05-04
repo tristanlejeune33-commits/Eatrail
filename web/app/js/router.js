@@ -25,6 +25,8 @@ window.eat = window.eat || {};
     { pattern: /^\/pantry\/?$/,            name: 'pantry' },
     { pattern: /^\/saved\/?$/,             name: 'saved' },
     { pattern: /^\/cart\/?$/,              name: 'cart' },
+    { pattern: /^\/collections\/?$/,       name: 'collections' },
+    { pattern: /^\/collection\/([^/]+)\/?$/, name: 'collection' },
     // v1.7 — meal planner
     { pattern: /^\/calendar\/?$/,          name: 'calendar' },
     // v1.8 — flavor DNA
@@ -83,6 +85,8 @@ window.eat = window.eat || {};
       case 'pantry': path = '/pantry'; break;
       case 'saved': path = '/saved'; break;
       case 'cart': path = '/cart'; break;
+      case 'collections': path = '/collections'; break;
+      case 'collection': path = '/collection/' + encodeURIComponent(params[0]); break;
       case 'calendar': path = '/calendar'; break;
       case 'flavorDna': path = '/flavor-dna'; break;
       case 'login': path = '/login'; break;
@@ -118,6 +122,7 @@ window.eat = window.eat || {};
       (route.name === 'shop' && dataRoute === 'shops') ||
       (route.name === 'pantry' && dataRoute === 'pantry') ||
       (route.name === 'saved' && dataRoute === 'saved') ||
+      ((route.name === 'collections' || route.name === 'collection') && dataRoute === 'saved') ||
       (route.name === 'cart' && dataRoute === 'cart') ||
       (route.name === 'calendar' && dataRoute === 'calendar') ||
       // toutes les sous-routes account ont la même surbrillance dans la nav

@@ -657,6 +657,9 @@ window.eat = window.eat || {};
               <button class="btn btn-ghost btn-block btn-sm save-btn-icon ${isSaved ? 'is-saved' : ''}" data-toggle-save="${esc(r.id)}">
                 ${isSaved ? '★ Favori' : '☆ Ajouter aux favoris'}
               </button>
+              <button class="btn btn-ghost btn-block btn-sm" data-add-to-collection="${esc(r.id)}">
+                ＋ Ajouter à une collection
+              </button>
             </div>
 
             <div class="side-card">
@@ -2830,5 +2833,141 @@ window.eat = window.eat || {};
   }
 
   eat.viewNotFound = notFoundView;
+
+  // ─────────────────────────────────────────────────────────
+  // COLLECTIONS / COOKBOOKS  (Liste 2 #N)
+  // ─────────────────────────────────────────────────────────
+
+  /** Liste des collections de l'utilisateur. Async-loaded. */
+  eat.viewCollections = function () {
+    if (!eat.auth || !eat.auth.isAuthenticated || !eat.auth.isAuthenticated()) {
+      return redirectView(eat.routeUrl('login', [], { next: '/collections' }));
+    }
+    requestAnimationFrame(loadCollectionsAsync);
+    return `
+      <div class="container page fade-in">
+        <span class="page-eyebrow">Mes cookbooks</span>
+        <h1 class="page-title">Mes collections</h1>
+        <p class="page-lead">Range tes recettes par thème : "Plats d'hiver", "Pour les invités", "Rapide en semaine"…</p>
+
+        <div style="display:flex;gap:10px;margin:18px 0;">
+          <button class="btn btn-primary btn-sm" id="collection-create-btn">＋ Nouvelle collection</button>
+        </div>
+
+        <div id="collections-list">
+          <div style="color:var(--muted);font-size:14px;text-align:center;padding:40px 0;">Chargement…</div>
+        </div>
+      </div>
+    `;
+  };
+
+  async function loadCollectionsAsync() {
+    const wrap = document.getElementById('collections-list');
+    if (!wrap) return;
+    if (!eat.api || !eat.api.currentUser) {
+      wrap.innerHTML = `<div class="empty"><h3>Connecte-toi</h3><p>Les collections sont liées à ton compte.</p></div>`;
+      return;
+    }
+    let items = [];
+    try {
+      const r = await eat.api.collections.list();
+      items = r.items || [];
+    } catch (e) {
+      wrap.innerHTML = `<div class="empty"><h3>Erreur</h3><p>${esc(e.message || 'Chargement impossible')}</p></div>`;
+      return;
+    }
+    if (items.length === 0) {
+      wrap.innerHTML = `
+        <div class="empty">
+          <h3>Aucune collection</h3>
+          <p>Crée ta première collection pour grouper tes recettes préférées.</p>
+        </div>`;
+      return;
+    }
+    wrap.innerHTML = `<div class="collections-grid">${items.map(collectionCard).join('')}</div>`;
+  }
+
+  function collectionCard(c) {
+    const count = c._count?.recipes ?? (c.recipes ? c.recipes.length : 0);
+    const thumbs = (c.recipes || []).slice(0, 4).map(cr => {
+      const r = cr.recipe || {};
+      const img = r.imageUrl || (window.EATRAIL_IMAGES || {})[r.id];
+      const bg = img ? `url('${esc(img)}')` : (r.gradient || 'var(--cream-deep)');
+      return `<div class="coll-thumb" style="background:${img ? bg : 'transparent'};background-color:var(--cream-deep);background-size:cover;background-position:center;"></div>`;
+    }).join('');
+    const fillers = '<div class="coll-thumb" style="background:var(--cream-deep);"></div>'.repeat(Math.max(0, 4 - (c.recipes || []).length));
+    return `
+      <a class="collection-card" href="${eat.routeUrl('collection', [c.id])}">
+        <div class="collection-card-mosaic">${thumbs}${fillers}</div>
+        <div class="collection-card-body">
+          <div class="collection-card-title">${c.emoji ? esc(c.emoji) + ' ' : ''}${esc(c.name)}</div>
+          <div class="collection-card-meta">${count} recette${count > 1 ? 's' : ''}${c.description ? ' · ' + esc(c.description.slice(0, 80)) : ''}</div>
+        </div>
+      </a>
+    `;
+  }
+
+  /** Détail d'une collection. Async-loaded. */
+  eat.viewCollection = function (id) {
+    if (!id) return redirectView(eat.routeUrl('collections'));
+    if (!eat.auth || !eat.auth.isAuthenticated || !eat.auth.isAuthenticated()) {
+      return redirectView(eat.routeUrl('login'));
+    }
+    eat._collectionId = id;
+    requestAnimationFrame(loadCollectionAsync);
+    return `
+      <div class="container page fade-in">
+        <a href="${eat.routeUrl('collections')}" style="font-size:14px;color:var(--muted);">← retour aux collections</a>
+        <div id="collection-detail" style="margin-top:18px;">
+          <div style="color:var(--muted);font-size:14px;text-align:center;padding:40px 0;">Chargement…</div>
+        </div>
+      </div>
+    `;
+  };
+
+  async function loadCollectionAsync() {
+    const id = eat._collectionId;
+    const wrap = document.getElementById('collection-detail');
+    if (!wrap || !id) return;
+    let col;
+    try {
+      const r = await eat.api.collections.get(id);
+      col = r.collection;
+    } catch (e) {
+      wrap.innerHTML = `<div class="empty"><h3>Collection introuvable</h3><p>${esc(e.message || '')}</p></div>`;
+      return;
+    }
+
+    const recipes = (col.recipes || []).map(cr => cr.recipe).filter(Boolean);
+    const cardsHtml = recipes.length
+      ? `<div class="recipe-grid">${recipes.map(r => collectionRecipeCard(r, col.id)).join('')}</div>`
+      : `<div class="empty"><h3>Collection vide</h3><p>Ajoute des recettes depuis leur page (bouton "＋ Collection").</p></div>`;
+
+    wrap.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:start;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
+        <div>
+          <h1 style="font-family:'Fraunces',serif;font-weight:800;font-size:clamp(28px,4vw,40px);line-height:1.05;">
+            ${col.emoji ? esc(col.emoji) + ' ' : ''}${esc(col.name)}
+          </h1>
+          ${col.description ? `<p style="color:var(--muted);margin-top:6px;max-width:560px;">${esc(col.description)}</p>` : ''}
+          <div style="font-size:13px;color:var(--muted);margin-top:6px;">${recipes.length} recette${recipes.length > 1 ? 's' : ''}</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" data-collection-rename="${esc(col.id)}">✎ Renommer</button>
+          <button class="btn btn-ghost btn-sm" data-collection-delete="${esc(col.id)}" style="color:var(--accent);">🗑 Supprimer</button>
+        </div>
+      </div>
+      <div style="margin-top:24px;">${cardsHtml}</div>
+    `;
+  }
+
+  function collectionRecipeCard(r, collectionId) {
+    return `
+      <div class="collection-recipe-wrap">
+        ${recipeCard(r)}
+        <button class="coll-recipe-remove" data-collection-recipe-remove="${esc(collectionId)}|${esc(r.id)}" aria-label="Retirer de la collection" title="Retirer de la collection">×</button>
+      </div>
+    `;
+  }
 
 })(window.eat);

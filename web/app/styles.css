@@ -3751,3 +3751,100 @@ textarea:focus-visible {
 }
 .bc-engine { font-size: 11px; color: var(--muted); }
 
+/* ── Collections / cookbooks ────────────────────────────── */
+.collections-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.collection-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--ink);
+  display: flex; flex-direction: column;
+  transition: transform .15s, box-shadow .15s;
+}
+.collection-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+}
+.collection-card-mosaic {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+  aspect-ratio: 16 / 9;
+  background: var(--cream-deep);
+}
+.coll-thumb {
+  background-color: var(--cream-deep);
+  background-size: cover;
+  background-position: center;
+}
+.collection-card-body {
+  padding: 14px 16px;
+}
+.collection-card-title {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1.15;
+}
+.collection-card-meta {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* Recipe card with a remove-from-collection button overlaid */
+.collection-recipe-wrap {
+  position: relative;
+}
+.coll-recipe-remove {
+  position: absolute; top: 8px; right: 8px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid var(--line);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 3;
+  transition: transform .12s, background .12s;
+}
+.coll-recipe-remove:hover {
+  background: var(--accent);
+  color: var(--white);
+  transform: scale(1.05);
+}
+
+/* "Add to collection" picker modal (lightweight, reuses .bc-modal-* base) */
+.coll-picker-list {
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 6px;
+  margin-top: 8px;
+}
+.coll-picker-item {
+  background: var(--cream-deep);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.coll-picker-item:hover { background: var(--cream-deeper, #efe6d9); }
+.coll-picker-item.is-in {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(63, 139, 84, .08);
+}
+

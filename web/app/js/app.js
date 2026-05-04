@@ -29,6 +29,8 @@
         case 'pantry':   html = eat.viewPantry(); break;
         case 'saved':    html = eat.viewSaved(); break;
         case 'cart':     html = eat.viewCart(); break;
+        case 'collections': html = eat.viewCollections(); break;
+        case 'collection':  html = eat.viewCollection(route.params[0]); break;
         case 'calendar': html = eat.viewCalendar(route.query); break;
         case 'flavorDna': html = eat.viewFlavorDna(); break;
         case 'login':    html = eat.viewLogin(route.query); break;
@@ -328,6 +330,97 @@
     }
   });
 
+  // ── Collection picker modal ─────────────────────────────
+  // Lightweight reuse of the .bc-modal-* shell for visual consistency.
+  async function openCollectionPicker(recipeId) {
+    let cols = [];
+    try {
+      const r = await eat.api.collections.list();
+      cols = r.items || [];
+    } catch (e) {
+      alert('Impossible de charger tes collections : ' + (e.message || ''));
+      return;
+    }
+
+    // Mark which collections already contain this recipe so we can disable / show ✓
+    const inSet = new Set();
+    cols.forEach(c => {
+      if ((c.recipes || []).some(cr => cr.recipe?.id === recipeId || cr.recipeId === recipeId)) {
+        inSet.add(c.id);
+      }
+    });
+
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `
+      <div class="bc-modal-backdrop" id="coll-picker-backdrop">
+        <div class="bc-modal" role="dialog" aria-label="Ajouter à une collection">
+          <div class="bc-modal-head">
+            <strong>＋ Ajouter à une collection</strong>
+            <button type="button" class="bc-modal-close" id="coll-picker-close" aria-label="Fermer">×</button>
+          </div>
+          <div class="bc-modal-body">
+            <button type="button" class="btn btn-ghost btn-sm" id="coll-picker-new" style="align-self:flex-start;">＋ Nouvelle collection</button>
+            <div class="coll-picker-list" id="coll-picker-list">
+              ${cols.length === 0
+                ? '<div style="color:var(--muted);font-size:13px;padding:12px 0;">Aucune collection — crée la première ci-dessus.</div>'
+                : cols.map(c => `
+                    <button type="button" class="coll-picker-item ${inSet.has(c.id) ? 'is-in' : ''}" data-coll-pick="${c.id}" ${inSet.has(c.id) ? 'disabled' : ''}>
+                      <span>${c.emoji ? c.emoji + ' ' : ''}${c.name.replace(/[<>"]/g, '')}</span>
+                      <span style="font-size:12px;color:var(--muted);">${inSet.has(c.id) ? '✓ Déjà dedans' : '＋ Ajouter'}</span>
+                    </button>
+                  `).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(wrap.firstElementChild);
+    document.body.style.overflow = 'hidden';
+
+    const close = () => {
+      const m = document.getElementById('coll-picker-backdrop');
+      if (m) m.remove();
+      document.body.style.overflow = '';
+    };
+
+    document.getElementById('coll-picker-close').addEventListener('click', close);
+    document.getElementById('coll-picker-backdrop').addEventListener('click', (e) => {
+      if (e.target.id === 'coll-picker-backdrop') close();
+    });
+
+    document.getElementById('coll-picker-new').addEventListener('click', async () => {
+      const name = window.prompt('Nom de la collection ?', '');
+      if (!name || !name.trim()) return;
+      const emoji = window.prompt('Un emoji (optionnel) ?', '📚') || null;
+      try {
+        const r = await eat.api.collections.create({ name: name.trim(), emoji: emoji ? emoji.trim() : null });
+        // Auto-add the recipe to the new collection
+        await eat.api.collections.addRecipe(r.collection.id, recipeId);
+        close();
+        alert(`✓ Recette ajoutée à "${r.collection.name}"`);
+      } catch (e) {
+        alert('Erreur : ' + (e.message || 'création impossible'));
+      }
+    });
+
+    document.getElementById('coll-picker-list').addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-coll-pick]');
+      if (!btn || btn.disabled) return;
+      const id = btn.getAttribute('data-coll-pick');
+      btn.disabled = true;
+      btn.querySelector('span:last-child').textContent = '…';
+      try {
+        await eat.api.collections.addRecipe(id, recipeId);
+        btn.classList.add('is-in');
+        btn.querySelector('span:last-child').textContent = '✓ Ajouté';
+        setTimeout(close, 600);
+      } catch (err) {
+        alert('Erreur : ' + (err.message || 'ajout impossible'));
+        btn.disabled = false;
+      }
+    });
+  }
+
   // YYYY-MM-DD + N days → YYYY-MM-DD (UTC math, no timezone surprises)
   function addDaysISO(iso, n) {
     const d = new Date(iso + 'T00:00:00Z');
@@ -611,6 +704,72 @@
         : '✓ Déjà au panier';
       updateCartBadge();
       setTimeout(() => { addCartBtn.textContent = '🛒 Ajouter au panier'; }, 2000);
+      return;
+    }
+
+    // ── Collections (Liste 2 #N) ────────────────────────────
+    // Create new collection (button on /collections page)
+    if (e.target && e.target.id === 'collection-create-btn') {
+      if (!eat.api || !eat.api.currentUser) {
+        alert('Connecte-toi pour créer des collections.');
+        return;
+      }
+      const name = window.prompt('Nom de la collection ?', '');
+      if (!name || !name.trim()) return;
+      const emoji = window.prompt('Un emoji (optionnel, laisse vide pour aucun) ?', '📚') || null;
+      eat.api.collections.create({ name: name.trim(), emoji: emoji ? emoji.trim() : null }).then(
+        () => render(),
+        (err) => alert('Création impossible : ' + (err.message || err.code || 'erreur'))
+      );
+      return;
+    }
+
+    // Rename / delete from the detail page
+    const rnBtn = e.target.closest && e.target.closest('[data-collection-rename]');
+    if (rnBtn) {
+      const id = rnBtn.getAttribute('data-collection-rename');
+      const cur = document.querySelector('h1');
+      const currentName = cur ? cur.textContent.trim().replace(/^[^\w]+\s/, '') : '';
+      const next = window.prompt('Nouveau nom de la collection ?', currentName);
+      if (!next || !next.trim()) return;
+      eat.api.collections.update(id, { name: next.trim() }).then(
+        () => render(),
+        (err) => alert('Mise à jour impossible : ' + (err.message || err.code || 'erreur'))
+      );
+      return;
+    }
+    const dlBtn = e.target.closest && e.target.closest('[data-collection-delete]');
+    if (dlBtn) {
+      if (!confirm('Supprimer cette collection ? Les recettes restent intactes — seul le regroupement est effacé.')) return;
+      const id = dlBtn.getAttribute('data-collection-delete');
+      eat.api.collections.remove(id).then(
+        () => { location.hash = eat.routeUrl('collections'); },
+        (err) => alert('Suppression impossible : ' + (err.message || err.code || 'erreur'))
+      );
+      return;
+    }
+
+    // Remove a recipe from a collection (× button on the card)
+    const rmRec = e.target.closest && e.target.closest('[data-collection-recipe-remove]');
+    if (rmRec) {
+      e.preventDefault(); e.stopPropagation();
+      const [colId, recipeId] = rmRec.getAttribute('data-collection-recipe-remove').split('|');
+      eat.api.collections.removeRecipe(colId, recipeId).then(
+        () => render(),
+        (err) => alert('Erreur : ' + (err.message || err.code || 'inconnue'))
+      );
+      return;
+    }
+
+    // "Add to collection" picker on a recipe page
+    const addCol = e.target.closest && e.target.closest('[data-add-to-collection]');
+    if (addCol) {
+      if (!eat.api || !eat.api.currentUser) {
+        alert('Connecte-toi pour ajouter à une collection.');
+        return;
+      }
+      const recipeId = addCol.getAttribute('data-add-to-collection');
+      openCollectionPicker(recipeId);
       return;
     }
 

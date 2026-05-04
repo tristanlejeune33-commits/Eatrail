@@ -215,6 +215,20 @@
       test: () => call('POST', '/api/push/test'),
     },
 
+    // ─── COLLECTIONS (cookbooks) ────────────────────────────
+    collections: {
+      list: () => call('GET', '/api/collections'),
+      get: (id) => call('GET', '/api/collections/' + encodeURIComponent(id)),
+      create: ({ name, description, emoji, isPublic } = {}) =>
+        call('POST', '/api/collections', { name, description, emoji, isPublic }),
+      update: (id, patch) => call('PATCH', '/api/collections/' + encodeURIComponent(id), patch),
+      remove: (id) => call('DELETE', '/api/collections/' + encodeURIComponent(id)),
+      addRecipe: (id, recipeId) =>
+        call('POST', '/api/collections/' + encodeURIComponent(id) + '/recipes', { recipeId }),
+      removeRecipe: (id, recipeId) =>
+        call('DELETE', `/api/collections/${encodeURIComponent(id)}/recipes/${encodeURIComponent(recipeId)}`),
+    },
+
     // ─── UGC RECIPE SUBMISSIONS ─────────────────────────────
     submissions: {
       create: (recipe) => call('POST', '/api/submissions', recipe),
