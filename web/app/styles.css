@@ -61,6 +61,8 @@ img { max-width: 100%; display: block; }
 /* ── LAYOUT ─────────────────────────────────────────── */
 .container { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
 @media (max-width: 600px) { .container { padding: 0 18px; } }
+@media (min-width: 1280px) { .container { max-width: 1280px; padding: 0 40px; } }
+@media (min-width: 1600px) { .container { max-width: 1400px; padding: 0 48px; } }
 
 /* ── TOP NAV ────────────────────────────────────────── */
 .app-nav {
@@ -3919,5 +3921,77 @@ textarea:focus-visible {
   .cat-card { width: 84px; padding: 12px 6px; border-radius: 14px; }
   .cat-card-emoji { font-size: 24px; }
   .cat-card-label { font-size: 11px; }
+}
+
+/* ─────────────────────────────────────────────────────────
+ * DESKTOP POLISH (≥ 1100 px)
+ *
+ * The app was authored mobile-first and most flows look great on a phone
+ * but felt cramped or wasteful on a laptop / desktop monitor. This block
+ * tightens up the desktop experience without touching the mobile layout:
+ *   - bigger recipe cards in a denser grid (more cards visible at once)
+ *   - tighter recipe-detail layout that uses the extra horizontal space
+ *   - narrower auth forms (login / signup look stretched at 1180px)
+ *   - shop / collection / preference grids similar treatment
+ *   - bigger hero / titles / spacing for breathing room
+ *
+ * No new tokens, just media-query overrides that piggyback on existing
+ * classes. Anything not specified here stays mobile-first by default.
+ * ────────────────────────────────────────────────────────── */
+@media (min-width: 1100px) {
+  /* Recipe / shop / collection grids: target 4 cols at 1280px+ */
+  .recipe-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 22px;
+  }
+  .shop-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 22px;
+  }
+  .collections-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 22px;
+  }
+
+  /* Recipe detail: keep the editorial proportion */
+  .recipe-layout { gap: 40px; }
+  .recipe-section h2 { font-size: 28px; }
+  .recipe-hero { min-height: 380px; }
+
+  /* Page eyebrow + lead get more room */
+  .page-title { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.02; }
+  .page-lead { max-width: 720px; font-size: 17px; }
+
+  /* Auth forms (login / signup / forgot / reset) — stretched at full width
+     felt awkward; recenter with a cap. */
+  .auth-card { max-width: 460px; }
+
+  /* Pantry: side-by-side layout works at 820px+, give it more breathing
+     room on desktop and lift "Suggestions anti-gaspi" so they're readable. */
+  .pantry-grid {
+    grid-template-columns: 1fr 1.4fr;
+    gap: 32px;
+  }
+
+  /* Cart: stop having the scan panel spread edge-to-edge */
+  .scan-panel { gap: 24px; }
+  .cart-toolbar { padding: 18px 22px; }
+
+  /* Filter bar / search input: bigger target */
+  .filter-bar { padding: 14px 16px; }
+  .filter-search input { font-size: 15px; padding: 10px 14px; }
+
+  /* Modal pickers (meal picker, barcode scanner, collection picker) — cap
+     them so they don't stretch absurdly wide on a 1920px monitor. */
+  .modal { max-width: 560px; }
+  .bc-modal { max-width: 520px; }
+}
+
+@media (min-width: 1440px) {
+  /* On wide monitors, give recipe cards a bit more presence */
+  .recipe-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+  .shop-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  /* Hero gets a touch of extra cinematic feel */
+  .recipe-hero { min-height: 440px; }
 }
 
