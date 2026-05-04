@@ -276,7 +276,62 @@
       render();
       return;
     }
+
+    // AI: fill the week with 7 dinners chosen by Claude
+    if (e.target && e.target.id === 'cal-ai-fill') {
+      const btn = e.target;
+      const weekStart = btn.getAttribute('data-week-start');
+      if (!weekStart) return;
+
+      // Must be logged in (uses user prefs + persists meals)
+      if (!eat.api || !eat.api.isOnline || !eat.api.currentUser) {
+        alert('Connecte-toi pour utiliser la suggestion IA.');
+        return;
+      }
+
+      // Detect existing PLANNED dinners in the week → ask before replacing
+      let replaceExisting = false;
+      try {
+        const existing = await eat.api.mealPlan.list(weekStart, addDaysISO(weekStart, 6), 'PLANNED');
+        const existingDinners = (existing.items || []).filter(p => p.slot === 'DINNER');
+        if (existingDinners.length > 0) {
+          if (!confirm(`Tu as déjà ${existingDinners.length} dîner${existingDinners.length > 1 ? 's' : ''} planifié${existingDinners.length > 1 ? 's' : ''} cette semaine. Les remplacer par les suggestions IA ?`)) {
+            return;
+          }
+          replaceExisting = true;
+        } else {
+          if (!confirm('Générer 7 dîners IA pour la semaine, basés sur tes préférences ?')) return;
+        }
+      } catch {
+        if (!confirm('Générer 7 dîners IA pour la semaine, basés sur tes préférences ?')) return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = '✨ Claude réfléchit (10-30s)…';
+      try {
+        const r = await eat.api.mealPlan.generate(weekStart, 2, replaceExisting);
+        btn.textContent = `✓ ${r.created} dîners ajoutés`;
+        setTimeout(() => render(), 700);
+      } catch (err) {
+        const msg =
+          err.code === 'ai_not_configured' ? 'IA non configurée côté serveur.' :
+          err.code === 'not_enough_candidates' ? 'Pas assez de recettes correspondent à tes préférences. Élargis tes cuisines / réduis les contraintes.' :
+          err.code === 'ai_failed' ? 'Claude a échoué — réessaie dans 1 min.' :
+          err.message || 'Erreur inconnue';
+        alert('Erreur : ' + msg);
+        btn.disabled = false;
+        btn.textContent = '✨ Remplis ma semaine';
+      }
+      return;
+    }
   });
+
+  // YYYY-MM-DD + N days → YYYY-MM-DD (UTC math, no timezone surprises)
+  function addDaysISO(iso, n) {
+    const d = new Date(iso + 'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate() + n);
+    return d.toISOString().slice(0, 10);
+  }
 
   // Meal picker live search
   document.addEventListener('input', (e) => {

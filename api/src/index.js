@@ -26,6 +26,7 @@ import flavorDnaRoutes from './routes/flavor-dna.js';
 import nutritionRoutes from './routes/nutrition.js';
 import pushRoutes from './routes/push.js';
 import submissionsRoutes from './routes/submissions.js';
+import cronRoutes from './routes/cron.js';
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3001', 10);
@@ -129,6 +130,7 @@ app.use('/api/flavor-dna', flavorDnaRoutes);
 app.use('/api/nutrition', nutritionRoutes);
 app.use('/api/push', pushRoutes);
 app.use('/api/submissions', submissionsRoutes);
+app.use('/api/cron', cronRoutes);
 
 // ─── Static SPA (single-service deploy on Railway) ────────
 // Serves web/app/* (HTML, CSS, JS, images) from this same Express server.

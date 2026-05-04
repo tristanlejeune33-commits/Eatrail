@@ -1,9 +1,10 @@
-// /api/meal-plan — meal calendar (CRUD + aggregated weekly shopping list)
+// /api/meal-plan — meal calendar (CRUD + aggregated weekly shopping list + AI weekly generator)
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../db.js';
 import { requireAuth } from '../auth/middleware.js';
 import { validate, sendValidationError } from '../lib/zod-helpers.js';
+import { filterCandidates, generateWeeklyPlan, isConfigured as aiConfigured } from '../lib/meal-plan-ai.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -190,6 +191,116 @@ router.get('/shopping-list', async (req, res) => {
     mealCount: plans.length,
     uniqueIngredients: items.length,
   });
+});
+
+// ─── POST /api/meal-plan/generate ──────────────────────────
+// Ask Claude to fill a 7-day window with DINNER suggestions based on the
+// user's preferences. Creates the MealPlan rows and returns them.
+//
+// Body: {
+//   startDate:        'YYYY-MM-DD',           // first day of the week
+//   servings?:        int (default 2),
+//   replaceExisting?: bool (default false)    // if true, deletes existing PLANNED dinners in the range first
+// }
+const generateSchema = z.object({
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  servings: z.number().int().min(1).max(50).default(2),
+  replaceExisting: z.boolean().default(false),
+});
+
+router.post('/generate', async (req, res) => {
+  if (!aiConfigured()) {
+    return res.status(503).json({ error: 'ai_not_configured', message: 'Anthropic API key not set on server' });
+  }
+
+  const { data, error } = validate(generateSchema, req.body);
+  if (error) return sendValidationError(res, error);
+
+  // 1) Load user prefs (graceful default if no row yet)
+  const prefsRow = await prisma.userPreferences.findUnique({ where: { userId: req.user.id } });
+  const prefs = {
+    cuisines: prefsRow?.cuisines || [],
+    allergens: prefsRow?.allergens || [],
+    dietary: prefsRow?.dietary || [],
+    budgetPerPerson: prefsRow?.budgetPerPerson ?? null,
+    householdSize: prefsRow?.householdSize ?? data.servings,
+  };
+
+  // 2) Load the recipe pool with the relations the AI needs to read
+  const recipes = await prisma.recipe.findMany({
+    select: {
+      id: true, title: true, country: true, region: true,
+      durationMin: true, budgetPerPerson: true, summary: true,
+      allergens: { select: { allergen: true } },
+      diets: { select: { diet: true } },
+      moods: { select: { mood: true } },
+    },
+  });
+
+  // 3) Filter to a manageable candidate pool
+  const candidates = filterCandidates(recipes, prefs);
+  if (candidates.length < 7) {
+    return res.status(422).json({
+      error: 'not_enough_candidates',
+      message: `Only ${candidates.length} recipes match your preferences — relax allergens or dietary to broaden the pool.`,
+      candidateCount: candidates.length,
+    });
+  }
+
+  // 4) Compute date range (7 days starting at startDate)
+  const start = new Date(data.startDate + 'T00:00:00.000Z');
+  const end = new Date(start.getTime() + 7 * 24 * 3600 * 1000);
+
+  // 5) Optional: clear existing PLANNED dinners in the window before regenerating
+  if (data.replaceExisting) {
+    await prisma.mealPlan.deleteMany({
+      where: {
+        userId: req.user.id,
+        slot: 'DINNER',
+        status: 'PLANNED',
+        date: { gte: start, lt: end },
+      },
+    });
+  }
+
+  // 6) Ask Claude
+  let selections;
+  try {
+    selections = await generateWeeklyPlan(prefs, candidates, data.startDate);
+  } catch (e) {
+    console.error('[meal-plan/generate] AI failed:', e.message);
+    return res.status(502).json({ error: 'ai_failed', message: e.message });
+  }
+
+  // 7) Persist the chosen meals
+  const created = [];
+  for (const s of selections) {
+    const date = new Date(start.getTime() + s.dayOffset * 24 * 3600 * 1000);
+
+    // Find next position in slot for this date (so we don't collide with manual entries)
+    const last = await prisma.mealPlan.findFirst({
+      where: { userId: req.user.id, date, slot: 'DINNER' },
+      orderBy: { position: 'desc' },
+      select: { position: true },
+    });
+    const position = (last?.position ?? -1) + 1;
+
+    const plan = await prisma.mealPlan.create({
+      data: {
+        userId: req.user.id,
+        recipeId: s.recipeId,
+        date,
+        slot: 'DINNER',
+        servings: data.servings,
+        notes: s.rationale ? `✨ ${s.rationale}` : null,
+        position,
+      },
+      include: { recipe: { select: { id: true, title: true, country: true, flag: true, durationMin: true, budgetPerPerson: true, gradient: true, imageUrl: true } } },
+    });
+    created.push(plan);
+  }
+
+  return res.status(201).json({ created: created.length, items: created });
 });
 
 // ─── POST /api/meal-plan/:id/to-cart ──────────────────────

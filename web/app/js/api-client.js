@@ -230,6 +230,10 @@
       remove: (id) => call('DELETE', '/api/meal-plan/' + id),
       shoppingList: (from, to) => call('GET', '/api/meal-plan/shopping-list' + qs({ from, to })),
       toCart: (id) => call('POST', '/api/meal-plan/' + id + '/to-cart'),
+      // AI: pick 7 dinners for the week starting at `startDate` (YYYY-MM-DD).
+      // replaceExisting=true wipes existing PLANNED dinners in the window first.
+      generate: (startDate, servings, replaceExisting) =>
+        call('POST', '/api/meal-plan/generate', { startDate, servings, replaceExisting }),
     },
 
     // ─── GEO / SHOP DISCOVERY ───────────────────────────────

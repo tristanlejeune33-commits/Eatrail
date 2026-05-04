@@ -1303,6 +1303,7 @@ window.eat = window.eat || {};
 
         <div class="cal-actions" style="display:flex;gap:8px;margin:14px 0;flex-wrap:wrap;">
           <button class="btn btn-primary btn-sm" id="cal-shopping-list">📋 Liste de courses de la semaine</button>
+          <button class="btn btn-secondary btn-sm" id="cal-ai-fill" data-week-start="${esc(weekStart)}">✨ Remplis ma semaine</button>
           <button class="btn btn-ghost btn-sm" id="cal-clear-week">🗑 Vider la semaine</button>
         </div>
 
