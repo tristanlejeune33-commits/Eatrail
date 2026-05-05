@@ -365,7 +365,7 @@
         alert('Erreur : ' + err.message);
       }
       e.target.disabled = false;
-      e.target.textContent = '📋 Liste de courses de la semaine';
+      e.target.innerHTML = '<img class="btn-icon" src="icons/foodie/19-liste-courses.svg" alt="" /> Liste de courses de la semaine';
       return;
     }
 
@@ -443,7 +443,7 @@
         console.error('[ai-fill] failed:', err.code, err.status, err.message);
         alert('Erreur : ' + msg);
         btn.disabled = false;
-        btn.textContent = '✨ Remplis ma semaine';
+        btn.innerHTML = '<img class="btn-icon" src="icons/foodie/20-remplis-semaine.svg" alt="" /> Remplis ma semaine';
       }
       return;
     }

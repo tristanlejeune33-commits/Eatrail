@@ -428,7 +428,7 @@ window.eat = window.eat || {};
         <!-- Barre principale compacte : recherche + pays + bouton "Filtres" + reset -->
         <div class="filter-toolbar">
           <div class="filter-toolbar-search">
-            <span class="filter-toolbar-search-icon">🔍</span>
+            <img class="filter-toolbar-search-icon" src="icons/foodie/25-recherche.svg" alt="" />
             <input id="filter-q" type="search" placeholder="Chercher un plat, un pays…" value="${esc(filters.q)}" />
           </div>
           <select id="filter-country" class="filter-toolbar-select">
@@ -1355,7 +1355,7 @@ window.eat = window.eat || {};
             ${eat.mealPlan.SLOTS.map(slot => `
               <div class="cal-slot" data-date="${dateISO}" data-slot="${slot}">
                 <div class="cal-slot-label">
-                  <span>${eat.mealPlan.SLOT_EMOJI[slot]} ${eat.mealPlan.SLOT_LABELS[slot]}</span>
+                  <span><img class="cal-slot-icon" src="${eat.mealPlan.SLOT_ICON[slot]}" alt="" /> ${eat.mealPlan.SLOT_LABELS[slot]}</span>
                   <button class="cal-add-btn" data-add-meal data-date="${dateISO}" data-slot="${slot}" aria-label="Ajouter">+</button>
                 </div>
                 <div class="cal-slot-meals" data-slot-meals="${dateISO}|${slot}">
@@ -1389,8 +1389,8 @@ window.eat = window.eat || {};
         </div>
 
         <div class="cal-actions" style="display:flex;gap:8px;margin:14px 0;flex-wrap:wrap;">
-          <button class="btn btn-primary btn-sm" id="cal-shopping-list">📋 Liste de courses de la semaine</button>
-          <button class="btn btn-secondary btn-sm" id="cal-ai-fill" data-week-start="${esc(weekStart)}">✨ Remplis ma semaine</button>
+          <button class="btn btn-primary btn-sm" id="cal-shopping-list"><img class="btn-icon" src="icons/foodie/19-liste-courses.svg" alt="" /> Liste de courses de la semaine</button>
+          <button class="btn btn-secondary btn-sm" id="cal-ai-fill" data-week-start="${esc(weekStart)}"><img class="btn-icon" src="icons/foodie/20-remplis-semaine.svg" alt="" /> Remplis ma semaine</button>
           <button class="btn btn-ghost btn-sm" id="cal-clear-week">🗑 Vider la semaine</button>
         </div>
 

@@ -471,6 +471,12 @@ window.eat = window.eat || {};
     SLOTS,
     SLOT_LABELS: { BREAKFAST: 'Petit-déj', LUNCH: 'Déjeuner', DINNER: 'Dîner', SNACK: 'Snack' },
     SLOT_EMOJI:  { BREAKFAST: '🍳',          LUNCH: '🥗',       DINNER: '🍽',     SNACK: '🍪' },
+    SLOT_ICON:   {
+      BREAKFAST: 'icons/foodie/15-petit-dej.svg',
+      LUNCH:     'icons/foodie/16-dejeuner.svg',
+      DINNER:    'icons/foodie/17-diner.svg',
+      SNACK:     'icons/foodie/18-snack.svg',
+    },
 
     // List local plans in date range (inclusive). Dates are ISO YYYY-MM-DD strings.
     listLocal(from, to) {

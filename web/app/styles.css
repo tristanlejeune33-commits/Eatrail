@@ -508,10 +508,12 @@ img { max-width: 100%; display: block; }
 }
 .filter-search input:focus { outline: none; border-color: var(--primary); background: var(--white); }
 .filter-search::before {
-  content: "🔍";
-  position: absolute; left: 14px; top: 50%;
+  content: "";
+  position: absolute; left: 12px; top: 50%;
   transform: translateY(-50%);
-  font-size: 14px; opacity: .6;
+  width: 22px; height: 22px;
+  background: url('icons/foodie/25-recherche.svg') center/contain no-repeat;
+  pointer-events: none;
 }
 .filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
 .filter-chip {
@@ -4252,9 +4254,10 @@ textarea:focus-visible {
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 15px;
-  color: var(--muted);
+  width: 22px;
+  height: 22px;
   pointer-events: none;
+  object-fit: contain;
 }
 .filter-toolbar-select {
   height: 42px;
