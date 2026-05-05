@@ -87,7 +87,7 @@
     if (slotMobile) {
       slotMobile.innerHTML = u
         ? `<a href="#/account" class="app-nav-avatar" data-route="account" aria-label="Mon compte" title="Mon compte" style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:var(--cream-deep);border:1.5px solid var(--ink);font-size:20px;line-height:1;text-decoration:none;flex-shrink:0;">${u.avatar}</a>`
-        : `<a href="#/login" class="app-nav-icon" data-route="account" aria-label="Se connecter">👤</a>`;
+        : `<a href="#/login" class="app-nav-pill" data-route="account" aria-label="Se connecter" style="display:inline-flex;align-items:center;justify-content:center;width:auto;height:auto;padding:9px 16px;font-size:13px;font-weight:600;border-radius:999px;background:var(--ink);color:var(--cream);text-decoration:none;border:0;white-space:nowrap;">Se connecter</a>`;
     }
     const route = eat.parseRoute();
     eat.updateNav(route);
