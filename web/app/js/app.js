@@ -59,6 +59,9 @@
       html = eat.viewNotFound('Erreur de rendu');
     }
     root.innerHTML = html;
+    // Tag the body when we're rendering the landing so nav rules can hide
+    // the in-app navigation (only "Se connecter" is allowed before login).
+    document.body.classList.toggle('is-landing', !!showLanding);
     updateCartBadge();
     updateNavAuthState();
     // Let modules that need to post-process the rendered DOM know they can

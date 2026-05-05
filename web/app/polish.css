@@ -2418,6 +2418,88 @@ select:focus {
    is the marketing footer of record. */
 .lp-page ~ .app-footer { display: none; }
 
+/* When body.is-landing is set, the top-nav is reduced to just the logo +
+   a single "Se connecter" pill — no Découvrir / Recettes / Magasins / etc.
+   Those links only make sense once the user is on the app side. */
+body.is-landing .app-nav-links-desktop { display: none !important; }
+body.is-landing .app-nav-burger { display: none !important; }
+body.is-landing .app-nav-top-mobile { gap: 0; }
+body.is-landing .app-nav-icon { display: none !important; }
+/* The signup/login pill rendered by updateNavAuthState() stays visible
+   in #nav-auth-slot and #nav-auth-slot-mobile — that's the only action. */
+body.is-landing .app-nav-inner {
+  justify-content: space-between;
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Defensive fix for recipe-hero / recipe-card-hero clipping
+ * (user reported: flag, AUTH pill and h1 visually cut off at the top
+ * on Carbonara card / Trofie hero / Cacio e Pepe card)
+ *
+ * Root cause: the original .recipe-hero used `height: 360px` (fixed),
+ * which under-sized the box for long titles + 5 meta-pills. The
+ * positioned h1 inside .recipe-hero-inner (anchored bottom: 24px) then
+ * overflowed out of the top of the box — and `overflow: hidden` on
+ * .recipe-hero clipped it. Same story on .recipe-card-hero with the
+ * floating flag/auth-pill against a hero that was sized too tightly.
+ *
+ * Fix: switch to `min-height` so the hero can grow with its content,
+ * and clamp the h1 to a manageable size that fits two lines comfortably.
+ * Also prevent .recipe-hero-inner from being clipped if it ever exceeds
+ * the box on weird viewports. The badge/flag stay at top-left/top-right
+ * — they just sit on top of the (now-reliably-sized) box.
+ * ───────────────────────────────────────────────────────── */
+
+/* Detail page hero — fluid height, never clip the title */
+.recipe-hero {
+  height: auto !important;
+  min-height: 320px;
+  /* Keep overflow: hidden for the rounded corners on the bg image, but
+     ensure inner content has room to breathe. */
+}
+.recipe-hero h1 {
+  font-size: clamp(24px, 5vw, 36px) !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.015em;
+}
+.recipe-hero-inner {
+  /* Keep anchored to the bottom but pad-top so it never visually
+     overlaps the flag/auth pill at the top. */
+  padding-top: 60px;
+  /* Allow the inner block to breathe past the bottom anchor up to a
+     reasonable maximum — content can scroll inside the page if it
+     overshoots, but won't clip into the flag area. */
+}
+@media (min-width: 920px) {
+  .recipe-hero { min-height: 380px; }
+  .recipe-hero-inner { padding-top: 90px; }
+  .recipe-hero h1 { font-size: clamp(32px, 4vw, 44px) !important; }
+}
+@media (min-width: 1280px) {
+  .recipe-hero { min-height: 440px; }
+}
+
+/* Recipe card hero — keep the 200px size on mobile but stop clipping
+   the floating overlays. Make sure they have proper z-stack + room. */
+.recipe-card-hero {
+  height: 200px;
+  min-height: 200px;
+}
+.recipe-card-hero .recipe-card-flag,
+.recipe-card-hero .recipe-card-auth {
+  z-index: 4 !important;     /* over both gradient overlays */
+}
+@media (max-width: 480px) {
+  .recipe-card-flag { width: 32px !important; height: 32px !important; font-size: 16px !important; top: 10px !important; left: 10px !important; }
+  .recipe-card-auth { font-size: 10px !important; padding: 4px 9px !important; top: 10px !important; right: 10px !important; }
+}
+
+/* Calendar meal card — title was clipping when 2+ lines. The
+   -webkit-line-clamp:2 was already in styles.css but on mobile narrow
+   columns the body padding is too tight; give it air. */
+.cal-meal-body { padding: 8px 10px !important; }
+.cal-meal-title { font-size: 12px !important; line-height: 1.25 !important; }
+
 /* ─────────────────────────────────────────────────────────
  * Burger button (mobile top-nav) + slide-out drawer
  * Replaces the 5-slot bottom-nav so the user can reach every section.
