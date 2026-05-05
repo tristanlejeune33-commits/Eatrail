@@ -1,0 +1,171 @@
+/* eatrail · Design System — Colors & Type
+ * Source of truth for the eatrail brand palette and type system.
+ * Two themes are documented: green (primary, food/herb) and terracotta (secondary, warm/spice).
+ * The product (web app v1.5) ships GREEN. Both landing pages exist in code.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* ─── BRAND COLORS — GREEN (default, production) ─────── */
+  --primary:        #3F8B54;   /* basil/sage — primary action, brand mark */
+  --primary-dark:   #2D6940;   /* hover/active state for primary */
+  --primary-light:  #7FB069;   /* tints, soft fills */
+  --accent:         #C85A3A;   /* terracotta — alert, rare ingredient, complementary heat */
+  --gold:           #D9A441;   /* saffron — highlights, eyebrow accents on dark */
+
+  /* ─── NEUTRALS ─────────────────────────────────────── */
+  --cream:          #F5F7EE;   /* page background — warm off-white with green cast */
+  --cream-deep:     #E6ECD6;   /* section/well background, soft surfaces */
+  --line:           #D5DDC5;   /* dividers, hairline borders */
+  --white:          #FFFFFF;   /* card surface */
+  --ink:            #15211A;   /* near-black, slightly green — primary text + dark surfaces */
+  --muted:          #5F6E62;   /* secondary text, subdued labels */
+
+  /* ─── ALT THEME — TERRACOTTA (landing v1, secondary) ──
+   * Same architecture, warmer palette. Swap by re-assigning these.
+   */
+  --tc-primary:        #E8602C;
+  --tc-primary-dark:   #C54818;
+  --tc-accent:         #2E5D3E;
+  --tc-gold:           #E4AE3A;
+  --tc-cream:          #FBF6EC;
+  --tc-cream-deep:     #F3EBD8;
+  --tc-line:           #E6DCC8;
+  --tc-ink:            #181614;
+  --tc-muted:          #6B655E;
+
+  /* ─── SEMANTIC SURFACES (functional aliases) ────────── */
+  --bg:              var(--cream);
+  --bg-deep:         var(--cream-deep);
+  --surface:         var(--white);
+  --surface-dark:    var(--ink);
+  --fg1:             var(--ink);
+  --fg2:             var(--muted);
+  --fg-on-dark:      var(--cream);
+  --fg-on-primary:   var(--cream);
+  --border:          var(--line);
+
+  /* state colors */
+  --success:         var(--primary);
+  --warning:         var(--gold);
+  --danger:          var(--accent);
+
+  /* tints (used for chip/pill backgrounds) */
+  --tint-primary:    rgba(63, 139, 84, 0.12);
+  --tint-primary-soft: rgba(63, 139, 84, 0.06);
+  --tint-accent:     rgba(200, 90, 58, 0.12);
+  --tint-gold:       rgba(217, 164, 65, 0.14);
+
+  /* ─── TYPE FAMILIES ─────────────────────────────────── */
+  --font-display:    'Fraunces', 'Times New Roman', Georgia, serif;
+  --font-body:       'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:       ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* ─── TYPE SCALE ────────────────────────────────────── *
+   * Display = Fraunces (serif, italic for emphasis, optical-sized).
+   * Body    = Inter.
+   * Hero/H1 use clamp() for fluid behavior on the live site;
+   *   fixed values below are the design-time targets at 1080px container.
+   */
+  --fs-hero:         84px;
+  --fs-h1:           54px;
+  --fs-h2:           34px;
+  --fs-h3:           22px;
+  --fs-h4:           18px;
+  --fs-body:         15px;
+  --fs-body-lg:      17px;
+  --fs-small:        13px;
+  --fs-xs:           12px;
+  --fs-eyebrow:      12px;     /* uppercase tracked label */
+
+  --lh-tight:        1.02;
+  --lh-snug:         1.1;
+  --lh-normal:       1.55;
+
+  --ls-tight:       -0.02em;   /* large display headers */
+  --ls-snug:        -0.01em;
+  --ls-normal:       0;
+  --ls-wide:         0.04em;
+  --ls-eyebrow:      0.15em;   /* uppercase eyebrow / section-tag */
+
+  /* ─── SPACING & RADII ───────────────────────────────── */
+  --space-1:         4px;
+  --space-2:         8px;
+  --space-3:         12px;
+  --space-4:         16px;
+  --space-5:         20px;
+  --space-6:         24px;
+  --space-7:         32px;
+  --space-8:         48px;
+  --space-9:         64px;
+  --space-10:        90px;     /* section padding-y */
+
+  --radius-sm:       10px;     /* small chips, inputs, ingredient rows */
+  --radius:          18px;     /* default card radius */
+  --radius-lg:       28px;     /* hero blocks, large surfaces */
+  --radius-xl:       36px;     /* full-bleed concept stripes */
+  --radius-pill:     999px;    /* buttons, eyebrows, tags */
+
+  /* ─── ELEVATION ─────────────────────────────────────── */
+  --shadow:          0 10px 40px -15px rgba(24, 22, 20, 0.18);
+  --shadow-lg:       0 20px 60px -20px rgba(24, 22, 20, 0.25);
+  --shadow-soft:     0 4px 14px -8px rgba(24, 22, 20, 0.10);
+
+  /* ─── MOTION ────────────────────────────────────────── */
+  --ease-out:        cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast:        0.15s;
+  --dur:             0.2s;
+  --dur-slow:        0.4s;
+}
+
+/* ═══════════════════════════════════════════════════════
+   SEMANTIC ELEMENT STYLES
+   Authors should use these directly on bare tags.
+   ═══════════════════════════════════════════════════════ */
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--fg1);
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  color: var(--fg1);
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-snug);
+}
+h1 { font-weight: 800; font-size: clamp(42px, 7vw, var(--fs-hero)); line-height: var(--lh-tight); }
+h2 { font-weight: 700; font-size: clamp(32px, 4.5vw, 48px); }
+h3 { font-weight: 700; font-size: var(--fs-h3); letter-spacing: var(--ls-snug); }
+h4 { font-weight: 700; font-size: var(--fs-h4); }
+
+h1 em, h2 em, h3 em,
+.display-italic {
+  font-style: italic;
+  font-weight: 600;
+  color: var(--primary);    /* signature italic accent */
+}
+
+p { color: var(--fg1); font-size: var(--fs-body); line-height: var(--lh-normal); }
+p.lead { color: var(--fg2); font-size: var(--fs-body-lg); }
+
+small, .small { font-size: var(--fs-small); color: var(--fg2); }
+
+.eyebrow {
+  font-family: var(--font-body);
+  font-size: var(--fs-eyebrow);
+  font-weight: 700;
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+code, pre, kbd { font-family: var(--font-mono); font-size: 0.92em; }
+
+a { color: var(--primary); text-decoration: none; transition: color var(--dur); }
+a:hover { color: var(--primary-dark); }
