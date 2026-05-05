@@ -55,7 +55,7 @@ window.eat = window.eat || {};
           ${isSaved ? '<div class="recipe-card-auth" style="top:56px;background:var(--accent);">★ Favori</div>' : ''}
           <div class="recipe-card-meta-floating">
             <span>${eat.fmtDuration(r.duration)}</span>
-            <span>${esc(r.budget.level)} · ${ingCount} ing</span>
+            <span>${ingCount} ing</span>
             <span>${esc(r.origin.region || r.origin.country)}</span>
           </div>
         </div>
@@ -113,7 +113,7 @@ window.eat = window.eat || {};
             ${covBadge}
           </div>
         </div>
-        <div class="shop-card-distance">📍 ${dist} mi${s.walkMin ? ' · ' + s.walkMin + ' min à pied' : ''} · ${s.priceLevel || '$$'}${s.type ? ' · ' + esc(s.type) : ''}</div>
+        <div class="shop-card-distance">📍 ${dist} mi${s.walkMin ? ' · ' + s.walkMin + ' min à pied' : ''}${s.type ? ' · ' + esc(s.type) : ''}</div>
         ${tagPills ? `<div class="shop-card-tags">${tagPills}</div>` : ''}
         ${covering}
         ${rare > 0 ? `<div class="shop-rare-list">${rare} ingrédient${rare > 1 ? 's' : ''} rare${rare > 1 ? 's' : ''} en stock</div>` : ''}
@@ -317,8 +317,15 @@ window.eat = window.eat || {};
     const hasMore = visible.length < totalResults;
     const countries = [...new Set(eat.allRecipes().map(r => r.origin.country))].sort();
 
-    const moodOptions = ['comfort', 'quick', 'wow', 'spicy', 'street', 'festive', 'healthy'];
-    const dietOptions = ['vegetarian', 'vegan', 'dairy-free', 'gluten-free', 'pescatarian', 'halal-friendly'];
+    // ── Taxonomy v2 — 3 ergonomic tiers, no clutter ──
+    // TIER 1: meal-type tabs (above) — exclusive: Plats / Petit-déj / Desserts / Boissons / Tout
+    // TIER 2: 5 humeurs in a quick-pick row — multi-select, ALWAYS visible
+    // TIER 3: advanced filters in a collapsible panel — Pays / Régime / Allergènes
+    // The old "Catégorie" facet (soupes / ragoûts / nouilles) is removed:
+    // the meal-type tab + humeur pills already convey the same intent without
+    // making the user juggle three overlapping filters.
+    const moodOptions = ['quick', 'comfort', 'healthy', 'wow', 'spicy'];
+    const dietOptions = ['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'pescatarian', 'halal-friendly'];
 
     // helper pour rebuild query string sans les filtres internes
     const queryFor = (extra) => {
@@ -346,16 +353,6 @@ window.eat = window.eat || {};
         <span class="meal-tab-emoji">${t.emoji}</span>
         <span class="meal-tab-label">${esc(t.label)}</span>
         <span class="meal-tab-count">${t.count}</span>
-      </a>`;
-    }).join('');
-
-    // Categories now live inside the advanced filter panel as pills
-    // (same look as mood/diet/allergen — coherent + compact).
-    const categoryChips = eat.CATEGORIES.map(c => {
-      const active = filters.category === c.id;
-      const next = active ? '' : c.id;
-      return `<a class="pill-chip pill-category ${active ? 'is-active' : ''}" href="${eat.routeUrl('recipes', [], queryFor({ category: next }))}">
-        <span class="pill-emoji">${c.emoji}</span><span>${esc(c.label)}</span>
       </a>`;
     }).join('');
 
@@ -399,7 +396,7 @@ window.eat = window.eat || {};
       `<option value="${esc(c)}" ${filters.country === c ? 'selected' : ''}>${esc(c)}</option>`
     ).join('');
 
-    const hasFilters = filters.q || filters.country || filters.mood || filters.diet || filters.category || excludeAllergens.length;
+    const hasFilters = filters.q || filters.country || filters.mood || filters.diet || excludeAllergens.length;
 
     // v1.3 : barre indiquant que les préférences sont appliquées
     const prefsBar = (hasPrefs && !ignorePrefs) ? `
@@ -606,12 +603,11 @@ window.eat = window.eat || {};
     // FAB sticky mobile — design handoff §7.3 spec: gold-tagged primary CTA
     // pinned above the bottom-nav, opens the trail. Hidden on desktop where
     // the same actions live in the side card (.recipe-side).
-    const totalCost = (r.budget?.perPerson || 0) * servingsState;
+    // Pricing chip removed for v1 — pricing display is being reworked.
     const fabHtml = `
       <div class="fab-bar">
         <a class="fab-trail" href="${eat.routeUrl('trail', [r.id])}">
           <span>📍 Démarrer le trail</span>
-          <span class="price-tag">~$${totalCost.toFixed(0)}</span>
         </a>
       </div>`;
 
@@ -630,7 +626,7 @@ window.eat = window.eat || {};
               <div class="meta-pill"><strong>${eat.fmtDuration(r.duration)}</strong></div>
               <div class="meta-pill">${servingsState} pers.</div>
               <div class="meta-pill">${eat.fmtDifficulty(r.difficulty)}</div>
-              <div class="meta-pill">${esc(r.budget.level)} · $${r.budget.perPerson}/pers</div>
+              <!-- Budget pill hidden for v1 — pricing display is being reworked. -->
               <a class="meta-pill" style="text-decoration:none;color:inherit;" href="${eat.routeUrl('recipes', [], { category: r.category })}">${cat.emoji} ${esc(cat.label)}</a>
               ${rating.count > 0 ? `<div class="meta-pill"><span class="stars stars-sm">${eat.starsHtml(rating.avg)}</span> <strong>${rating.avg}</strong> · ${rating.count}</div>` : ''}
             </div>
@@ -641,7 +637,7 @@ window.eat = window.eat || {};
           <div class="recipe-stat"><b>${r.duration}</b><span>minutes</span></div>
           <div class="recipe-stat"><b>${servingsState}</b><span>portions</span></div>
           <div class="recipe-stat"><b>${(r.ingredients || []).length}</b><span>ingrédients</span></div>
-          <div class="recipe-stat"><b>${esc(r.budget.level)}</b><span>~$${(r.budget.perPerson * servingsState).toFixed(0)}</span></div>
+          <div class="recipe-stat"><b>${eat.fmtDifficulty(r.difficulty)}</b><span>difficulté</span></div>
         </div>
 
         <div class="validator-card">
@@ -791,8 +787,6 @@ window.eat = window.eat || {};
             <div class="trail-stop-meta">
               <span>📍 ${stop.shop.distMi} mi</span>
               <span>·</span>
-              <span>${esc(stop.shop.priceLevel)}</span>
-              <span>·</span>
               <span>${stop.items.length} produit${stop.items.length > 1 ? 's' : ''}</span>
             </div>
             <div class="trail-stop-items">${itemsHtml}</div>
@@ -817,7 +811,7 @@ window.eat = window.eat || {};
           <div class="trail-summary-stats">
             <div class="trail-stat"><strong>${trail.totalShops}</strong><span>arrêts</span></div>
             <div class="trail-stat"><strong>${trail.totalMi} mi</strong><span>distance totale</span></div>
-            <div class="trail-stat"><strong>$${trail.totalCost}</strong><span>budget total est.</span></div>
+            <div class="trail-stat"><strong>${trail.totalWalkMin || 0} min</strong><span>de marche</span></div>
             <div class="trail-stat"><strong>${r.servings}</strong><span>personnes</span></div>
           </div>
         </div>
@@ -1073,7 +1067,6 @@ window.eat = window.eat || {};
 
           <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
             <div class="meta-pill" style="background:var(--cream-deep);color:var(--ink);">📍 ${s.distMi} mi</div>
-            <div class="meta-pill" style="background:var(--cream-deep);color:var(--ink);">${esc(s.priceLevel)}</div>
             <div class="meta-pill" style="background:var(--cream-deep);color:var(--ink);">⏰ ${esc(s.hours)}</div>
           </div>
 
