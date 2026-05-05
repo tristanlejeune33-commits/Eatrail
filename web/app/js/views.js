@@ -382,12 +382,30 @@ window.eat = window.eat || {};
       </a>`;
     }).join('');
 
+    const ALLERGEN_ICON = {
+      'gluten':         'icons/foodie/28-sans-gluten.svg',
+      'lait':           'icons/foodie/29-sans-lait.svg',
+      'œufs':           'icons/foodie/30-sans-oeufs.svg',
+      'oeufs':          'icons/foodie/30-sans-oeufs.svg',
+      'soja':           'icons/foodie/31-sans-soja.svg',
+      'sésame':         'icons/foodie/32-sans-sesame.svg',
+      'sesame':         'icons/foodie/32-sans-sesame.svg',
+      'arachides':      'icons/foodie/33-sans-arachides.svg',
+      'fruits à coque': 'icons/foodie/34-sans-fruits-coque.svg',
+      'poisson':        'icons/foodie/35-sans-poisson.svg',
+      'crustacés':      'icons/foodie/36-sans-crustaces.svg',
+      'crustaces':      'icons/foodie/36-sans-crustaces.svg',
+      'mollusques':     'icons/foodie/37-sans-mollusques.svg',
+    };
     const allergenChips = eat.ALLERGENS.map(a => {
       const active = excludeAllergens.includes(a);
       const nextList = active ? excludeAllergens.filter(x => x !== a) : [...excludeAllergens, a];
-      const emoji = ALLERGEN_EMOJI[a.toLowerCase()] || '⚠';
+      const icon = ALLERGEN_ICON[a.toLowerCase()];
+      const iconHtml = icon
+        ? `<img class="pill-icon" src="${icon}" alt="" />`
+        : `<span class="pill-emoji">${ALLERGEN_EMOJI[a.toLowerCase()] || '⚠'}</span>`;
       return `<a class="pill-chip pill-allergen ${active ? 'is-active' : ''}" href="${eat.routeUrl('recipes', [], queryFor({ noallergens: nextList.join(',') }))}">
-        <span class="pill-emoji">${emoji}</span><span>${active ? '✓ sans ' : 'sans '}${esc(a)}</span>
+        ${iconHtml}<span>${active ? '✓ sans ' : 'sans '}${esc(a)}</span>
       </a>`;
     }).join('');
 
