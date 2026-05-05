@@ -840,6 +840,81 @@ select:focus {
 }
 
 /* ─────────────────────────────────────────────────────────
+ * Phase 5 — Trail summary header (page Parcours / viewTrail)
+ * Concept-stripe pattern: ink background + gold radial flare,
+ * stats row in white-on-cream pills.
+ * ───────────────────────────────────────────────────────── */
+.trail-summary {
+  background: var(--ink);
+  color: var(--cream);
+  border-radius: var(--r-2xl);
+  padding: 28px 28px 24px;
+  position: relative;
+  overflow: hidden;
+  margin: 14px 0 28px;
+}
+.trail-summary::after {
+  content: '';
+  position: absolute;
+  bottom: -80px; right: -80px;
+  width: 280px; height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(217, 164, 65, .28), transparent 70%);
+  pointer-events: none;
+}
+.trail-summary > * { position: relative; z-index: 1; }
+.trail-summary .page-eyebrow,
+.trail-summary .eyebrow {
+  color: var(--gold) !important;
+}
+.trail-summary .page-eyebrow::before,
+.trail-summary .eyebrow:not(.no-dot)::before {
+  background: var(--gold);
+  box-shadow: 0 0 0 4px rgba(217, 164, 65, .25);
+}
+.trail-summary h1 {
+  color: var(--cream) !important;
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-tight);
+}
+.trail-summary h1 em { color: var(--gold); }
+.trail-summary p { color: rgba(245, 247, 238, .8); }
+
+.trail-summary-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 22px;
+}
+@media (max-width: 600px) {
+  .trail-summary-stats { grid-template-columns: repeat(2, 1fr); }
+}
+.trail-stat {
+  background: rgba(245, 247, 238, .08);
+  border: 1px solid rgba(245, 247, 238, .14);
+  border-radius: var(--r-md);
+  padding: 12px 10px;
+  text-align: center;
+}
+.trail-stat strong {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--gold);
+  letter-spacing: var(--ls-snug);
+  line-height: 1;
+}
+.trail-stat span {
+  display: block;
+  font-size: 11px;
+  color: rgba(245, 247, 238, .65);
+  margin-top: 4px;
+}
+
+/* ─────────────────────────────────────────────────────────
  * Phase 5 — Flavor DNA teaser card on /account
  * Gold-soft surface with a gold left accent, pointing to /flavor-dna.
  * Spec: design handoff §7.5 — "card with gold left-border accent 4 px".
