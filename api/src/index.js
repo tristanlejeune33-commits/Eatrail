@@ -54,7 +54,8 @@ app.use(helmet({
         'https://maps.googleapis.com',
         'https://*.tiles.mapbox.com',
         'https://api.mapbox.com',
-        'https://cdn.jsdelivr.net',  // Twemoji SVG flags (flag-emoji.js)
+        'https://cdn.jsdelivr.net',          // Twemoji SVG flags (flag-emoji.js)
+        'https://images.unsplash.com',       // landing page placeholder photos
       ],
       // 'unsafe-inline' for our small bootstrap inline scripts in views;
       // 'unsafe-eval' is required by Mapbox GL JS (GLSL shaders) AND html5-qrcode (decoder workers).
@@ -204,6 +205,28 @@ console.log(`[startup] SPA_DIR resolved to: ${SPA_DIR || '(NOT FOUND — API-onl
 if (SERVE_STATIC) {
   console.log(`Serving SPA from ${SPA_DIR}`);
 
+  // ── Marketing landing page at /landing — static, separate from the SPA.
+  // Located in `web/index.html` next to the SPA (one level up from web/app/).
+  // Reuses its own `web/colors_and_type.css` and brand SVGs in web/assets/brand/.
+  const WEB_DIR = path.resolve(SPA_DIR, '..');
+  app.get('/landing', (_req, res) => {
+    const landingPath = path.join(WEB_DIR, 'index.html');
+    if (fs.existsSync(landingPath)) {
+      res.sendFile(landingPath);
+    } else {
+      res.status(404).json({ error: 'landing_not_found' });
+    }
+  });
+  // Sibling assets the landing references (CSS, brand SVGs, /assets/*).
+  // Limited to specific files we know about so this doesn't double-serve
+  // /assets/recipes (those still live under SPA_DIR).
+  app.get('/colors_and_type.css', (_req, res) => {
+    res.sendFile(path.join(WEB_DIR, 'colors_and_type.css'));
+  });
+  app.use('/assets/brand', express.static(path.join(WEB_DIR, 'assets', 'brand'), {
+    maxAge: '7d',
+  }));
+
   // Long-cache versioned assets (images, fonts), short-cache HTML/JS/CSS
   app.use(express.static(SPA_DIR, {
     etag: true,
@@ -220,7 +243,7 @@ if (SERVE_STATIC) {
   }));
 
   // SPA fallback: any unknown non-/api path → serve index.html (hash router takes over)
-  app.get(/^(?!\/api\/|\/health$).+/, (req, res, next) => {
+  app.get(/^(?!\/api\/|\/health$|\/landing$).+/, (req, res, next) => {
     if (req.method !== 'GET') return next();
     res.sendFile(path.join(SPA_DIR, 'index.html'));
   });
