@@ -840,6 +840,318 @@ select:focus {
 }
 
 /* ─────────────────────────────────────────────────────────
+ * Phase 5 — Shop card (page Magasins)
+ * ───────────────────────────────────────────────────────── */
+.shop-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--ink);
+  transition: transform var(--dur) var(--ease-out),
+              border-color var(--dur) var(--ease-out),
+              box-shadow var(--dur) var(--ease-out);
+}
+.shop-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-2);
+}
+.shop-card-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: var(--ls-snug);
+}
+.shop-card-neighborhood {
+  font-size: 12px;
+  color: var(--muted);
+}
+.shop-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.shop-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.shop-auth-pill {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: 4px 10px;
+  border-radius: var(--r-full);
+  background: var(--tint-primary);
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.shop-auth-pill.is-mid {
+  background: var(--tint-gold);
+  color: #A77A1F;
+}
+.shop-auth-pill.is-low {
+  background: var(--tint-accent);
+  color: var(--terracotta);
+}
+
+/* Geo bar on /shops (current position display + actions) */
+.geo-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 14px 18px;
+  background: var(--cream-deep);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  margin-bottom: 18px;
+  font-size: 13px;
+}
+.geo-bar > .pos { color: var(--ink); flex: 1; min-width: 0; }
+.geo-bar .geo-radius {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Phase 5 — Recipe section (servings stepper + steps list)
+ * ───────────────────────────────────────────────────────── */
+.recipe-section { margin-bottom: 36px; }
+.recipe-section h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: var(--ls-snug);
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+.badge-section {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--cream);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* Servings stepper */
+.servings-control {
+  display: inline-flex;
+  align-items: center;
+  background: var(--cream-deep);
+  border-radius: var(--r-full);
+  padding: 4px;
+  gap: 4px;
+}
+.servings-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.servings-btn:hover {
+  background: var(--primary);
+  color: var(--cream);
+}
+.servings-value {
+  flex: 1;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+/* Steps list */
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.step-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.step-num-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--cream);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.step-body { flex: 1; min-width: 0; }
+.step-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink);
+  margin-bottom: 4px;
+  letter-spacing: var(--ls-snug);
+}
+.step-time {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.step-instruction {
+  font-size: 14px;
+  line-height: var(--lh-body);
+  color: var(--ink-soft);
+}
+
+/* Recipe story callout (validator quote) */
+.recipe-story {
+  background: var(--cream-deep);
+  border-radius: var(--r-xl);
+  padding: 22px 24px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: var(--lh-body);
+  color: var(--ink-soft);
+  margin-bottom: 24px;
+  position: relative;
+}
+.recipe-story::before {
+  content: '“';
+  position: absolute;
+  top: -12px; left: 14px;
+  font-family: var(--font-display);
+  font-style: normal;
+  font-weight: 800;
+  font-size: 80px;
+  line-height: 1;
+  color: var(--primary);
+  opacity: .5;
+}
+.recipe-story-validator {
+  display: block;
+  font-style: normal;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-top: 12px;
+  letter-spacing: .03em;
+}
+
+/* Ingredient list within recipe-section */
+.ing-list {
+  display: flex;
+  flex-direction: column;
+}
+.ing-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  align-items: center;
+}
+.ing-item:last-child { border-bottom: 0; }
+.ing-item .ing-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.ing-item .ing-substitute {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.ing-item .ing-qty {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--muted);
+  text-align: right;
+  white-space: nowrap;
+}
+.ing-item.is-rare .ing-name { color: var(--terracotta); font-weight: 600; }
+.ing-item .ing-rare-tag {
+  background: var(--tint-accent);
+  color: var(--terracotta);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: var(--r-full);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  margin-left: 6px;
+}
+
+/* Allergen banner above ingredients */
+.allergen-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--tint-accent);
+  border: 1px solid rgba(194, 100, 73, .25);
+  border-radius: var(--r-md);
+  margin-bottom: 18px;
+  font-size: 13px;
+  color: var(--terracotta);
+}
+.allergen-banner strong { color: var(--terracotta); }
+
+/* Allergen pills inside the side card */
+.allergen-pill {
+  display: inline-block;
+  background: var(--tint-accent);
+  color: var(--terracotta);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--r-full);
+  margin: 0 4px 4px 0;
+}
+
+/* ─────────────────────────────────────────────────────────
  * Phase 5 — Review card (recipe detail)
  * ───────────────────────────────────────────────────────── */
 .review-card {
