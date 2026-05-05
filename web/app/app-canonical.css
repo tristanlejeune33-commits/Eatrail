@@ -93,6 +93,7 @@
    the only visible action on the landing page. */
 body.is-landing .app-nav-links-desktop { display: flex !important; }
 body.is-landing .app-nav-links-desktop > .app-nav-link { display: none !important; }
+body.is-landing .app-nav-links-desktop > .app-nav-icon-desktop { display: none !important; }
 body.is-landing .app-nav-links-desktop > #nav-auth-slot { display: inline-flex !important; }
 body.is-landing .app-nav-top-mobile #nav-auth-slot-mobile { display: inline-flex !important; }
 /* Mobile cart icon also hidden on landing — only login matters */
@@ -119,19 +120,81 @@ body.is-landing #nav-auth-slot-mobile a.app-nav-icon::after {
 body.is-landing #nav-auth-slot-mobile a.app-nav-icon { font-size: 0 !important; }
 body.is-landing #nav-auth-slot-mobile a.app-nav-icon::after { font-size: 13px !important; }
 
-/* Avatar pill (logged in) — 40 px circle */
+/* Avatar pill (logged in) — 40 px circle, anchored top-right */
+#nav-auth-slot a.app-nav-avatar,
+#nav-auth-slot-mobile a.app-nav-avatar,
 .app-nav-avatar {
-  width: 40px;
-  height: 40px;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  background: var(--cream-deep) !important;
+  border: 1.5px solid var(--ink) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  text-decoration: none !important;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+  padding: 0 !important;
+}
+#nav-auth-slot a.app-nav-avatar:hover,
+#nav-auth-slot-mobile a.app-nav-avatar:hover,
+.app-nav-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 14px -6px rgba(21,33,26,.30);
+}
+
+/* Desktop cart icon (alongside avatar) — same 42 px circle as mobile */
+.app-nav-icon-desktop {
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-  background: var(--cream-deep);
+  background: var(--white);
   border: 1px solid var(--line-soft);
+  color: var(--ink);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 18px;
   text-decoration: none;
   flex-shrink: 0;
+  position: relative;
+  transition: border-color .15s ease;
+}
+.app-nav-icon-desktop:hover { border-color: var(--ink); }
+.app-nav-icon-desktop .nav-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--terracotta);
+  color: var(--cream);
+  font-size: 10.5px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Push the cart icon + auth slot to the far right of the desktop nav. */
+.app-nav-links-desktop {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.app-nav-links-desktop .app-nav-icon-desktop { margin-left: 8px; }
+.app-nav-links-desktop #nav-auth-slot { margin-left: 6px; }
+
+/* On the mobile top bar we already have the burger — drop the
+   redundant cart icon there. The drawer + desktop slot cover it. */
+@media (max-width: 960px) {
+  .app-nav-icon-desktop { display: none !important; }
 }
 
 /* ════════ RECIPE CARD (rcard pattern) ═════════════════════════════
