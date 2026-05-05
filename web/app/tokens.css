@@ -8,29 +8,30 @@
  */
 
 :root {
-  /* ─────────── Brand colors (Phase 1, README §5) ─────────── */
-  --primary:        #3F8B54;   /* basil green — CTA, links, brand accents */
-  --primary-dark:   #2D6940;   /* hover/pressed */
-  --primary-soft:   #E8F0EA;   /* tinted backgrounds, chip fills */
-  --primary-light:  #7FB069;   /* legacy alias, still in use */
+  /* ─────────── Brand colors (canonical from 08_ux_global) ─────────── */
+  --primary:        #3F8B54;
+  --primary-dark:   #2D6940;
+  --primary-light:  #7FB069;
+  --primary-soft:   rgba(63, 139, 84, .10);
 
-  --gold:           #D9A441;   /* saffron — highlights, validator badge */
-  --gold-soft:      #F5E8CC;
+  --gold:           #D9A441;
+  --gold-soft:      rgba(217, 164, 65, .14);
 
-  --terracotta:     #C26449;   /* warm accent — sparingly */
+  --accent:         #C85A3A;   /* terracotta accent — canonical name */
+  --terracotta:     #C85A3A;   /* alias */
 
-  /* ─────────── Neutrals ─────────── */
-  --ink:            #1F1F1C;   /* primary text */
-  --ink-soft:       #3A3A35;   /* secondary text */
-  --muted:          #7A7A72;   /* tertiary text, captions */
-  --line:           #E8E5DC;   /* hairline borders */
-  --line-soft:      #F0EDE4;   /* deeper hairlines */
+  /* ─────────── Neutrals (canonical) ─────────── */
+  --ink:            #15211A;
+  --ink-soft:       #2A3A30;
+  --muted:          #6B7B6F;
+  --line:           #DCE3CF;
+  --line-soft:      #E8EDDC;
 
-  --cream:          #FAF7F0;   /* page background — warm */
-  --cream-deep:     #F2EDDF;   /* alt section background */
-  --cream-soft:     #FCFAF4;   /* near-paper, optional */
-  --paper:          #FFFFFF;   /* card surface */
-  --white:          #FFFFFF;   /* legacy alias */
+  --cream:          #F5F7EE;
+  --cream-deep:     #ECF0DF;
+  --cream-soft:     #FAFBF4;
+  --paper:          #FFFFFF;
+  --white:          #FFFFFF;
 
   /* ─────────── Semantic ─────────── */
   --success:        var(--primary);
@@ -51,11 +52,11 @@
   --fg-on-primary:  var(--cream);
   --border:         var(--line);
 
-  /* Tints (for chip / pill backgrounds) */
-  --tint-primary:       rgba(63, 139, 84, 0.10);
-  --tint-primary-soft:  rgba(63, 139, 84, 0.05);
-  --tint-accent:        rgba(194, 100, 73, 0.12);
-  --tint-gold:          rgba(217, 164, 65, 0.14);
+  /* Tints (for chip / pill backgrounds — canonical) */
+  --tint-primary:       rgba(63, 139, 84, .10);
+  --tint-primary-soft:  rgba(63, 139, 84, .04);
+  --tint-accent:        rgba(200, 90, 58, .10);
+  --tint-gold:          rgba(217, 164, 65, .14);
 
   /* ─────────── Type families ─────────── */
   --font-display:    'Fraunces', Georgia, serif;
@@ -103,29 +104,30 @@
   --space-11: 80px;
   --space-12: 120px;
 
-  /* ─────────── Radii (canonical naming) ─────────── */
-  --r-sm:    8px;
-  --r-md:   12px;
-  --r-lg:   16px;
-  --r-xl:   20px;
-  --r-2xl:  28px;
-  --r-full: 999px;
-  /* Legacy aliases — kept while styles.css uses these */
-  --radius-sm:   var(--r-sm);
-  --radius:      var(--r-xl);
-  --radius-lg:   var(--r-2xl);
-  --radius-xl:   var(--r-2xl);
-  --radius-pill: var(--r-full);
+  /* ─────────── Radii (canonical from 08_ux_global) ─────────── */
+  --radius-xs:   8px;
+  --radius-sm:  14px;
+  --radius:     20px;
+  --radius-lg:  28px;
+  --radius-pill: 999px;
+  /* Aliases */
+  --r-sm:        var(--radius-xs);
+  --r-md:        12px;
+  --r-lg:        var(--radius-sm);
+  --r-xl:        var(--radius);
+  --r-2xl:       var(--radius-lg);
+  --r-full:      var(--radius-pill);
 
-  /* ─────────── Shadows ─────────── */
-  --shadow-1:    0 1px 2px rgba(31, 31, 28, 0.06);
-  --shadow-2:    0 6px 18px rgba(31, 31, 28, 0.08);
-  --shadow-3:    0 16px 40px rgba(31, 31, 28, 0.12);
-  --shadow-hero: 0 32px 80px rgba(31, 31, 28, 0.18);
-  /* Legacy aliases */
-  --shadow-soft: var(--shadow-1);
-  --shadow:      var(--shadow-2);
-  --shadow-lg:   var(--shadow-3);
+  /* ─────────── Shadows (canonical from 08_ux_global) ─────────── */
+  --shadow-sm:   0 2px 6px -2px rgba(21, 33, 26, .06);
+  --shadow:      0 8px 24px -12px rgba(21, 33, 26, .16);
+  --shadow-lg:   0 18px 50px -22px rgba(21, 33, 26, .30);
+  /* Aliases */
+  --shadow-soft: var(--shadow-sm);
+  --shadow-1:    var(--shadow-sm);
+  --shadow-2:    var(--shadow);
+  --shadow-3:    var(--shadow-lg);
+  --shadow-hero: var(--shadow-lg);
 
   /* ─────────── Motion ─────────── */
   --ease-out:     cubic-bezier(0.22, 1, 0.36, 1);

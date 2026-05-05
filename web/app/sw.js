@@ -5,7 +5,7 @@
  *   - API calls (/api/*) → network-first, fallback cache (read-only views)
  *   - everything else → network-only
  */
-const VERSION = 'eatrail-v1.19.0';
+const VERSION = 'eatrail-v1.20.0';
 const STATIC_CACHE = `${VERSION}-static`;
 const IMAGE_CACHE = `${VERSION}-images`;
 const API_CACHE = `${VERSION}-api`;
@@ -17,6 +17,7 @@ const APP_SHELL = [
   '/styles.css',
   '/tokens.css',
   '/polish.css',
+  '/app-canonical.css',
   '/manifest.json',
   '/js/config.js',
   '/js/api-client.js',
@@ -82,7 +83,9 @@ self.addEventListener('fetch', (event) => {
   // App shell + recipe data files → stale-while-revalidate
   if (url.pathname.startsWith('/js/') || url.pathname.startsWith('/data/') ||
       url.pathname === '/' || url.pathname.endsWith('.html') ||
-      url.pathname === '/styles.css' || url.pathname === '/manifest.json') {
+      url.pathname === '/styles.css' || url.pathname === '/tokens.css' ||
+      url.pathname === '/polish.css' || url.pathname === '/app-canonical.css' ||
+      url.pathname === '/manifest.json') {
     event.respondWith(staleWhileRevalidate(req, STATIC_CACHE));
     return;
   }

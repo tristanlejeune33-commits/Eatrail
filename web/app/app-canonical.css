@@ -1,0 +1,433 @@
+/* eatrail · Canonical patterns from design_handoff_eatrail/.../08_ux_global.html
+ *
+ * Loaded LAST in the cascade (after polish.css). Maps the canonical
+ * patterns from the design reference onto the existing SPA class names so
+ * we don't have to rename markup. Anything that was wrong before (clipped
+ * heroes, generic colors, fixed heights) is corrected here from the
+ * design source of truth.
+ */
+
+/* ════════ TOP NAV ════════════════════════════════════════════════
+   Mobile (≤960): brand left, 1-2 icon-btns right (search + avatar/login).
+   Desktop (≥961): brand left, inline links center, primary "Se connecter" pill right.
+   Background = solid cream (no blur) per 08_ux_global.
+*/
+.app-nav {
+  background: var(--cream) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  border-bottom: 1px solid var(--line-soft);
+}
+.app-nav-inner {
+  height: auto;
+  padding: 12px 18px 10px;
+}
+@media (min-width: 961px) {
+  .app-nav-inner { padding: 18px 36px; }
+}
+
+/* Inline desktop links — pill style on hover/active */
+.app-nav-links-desktop .app-nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  transition: all .15s ease;
+}
+.app-nav-links-desktop .app-nav-link:hover,
+.app-nav-links-desktop .app-nav-link.is-active {
+  color: var(--ink);
+  background: var(--cream-deep);
+  font-weight: 600;
+}
+
+/* Mobile icon buttons — 42 px white circle */
+.app-nav-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  background: var(--white);
+  border: 1px solid var(--line-soft);
+  transition: border-color .15s ease;
+  font-size: 18px;
+  text-decoration: none;
+  flex-shrink: 0;
+  position: relative;
+}
+.app-nav-icon:hover { border-color: var(--ink); }
+
+/* "Se connecter" CTA pill (replaces the auth slot when not logged in) */
+#nav-auth-slot a.app-nav-pill,
+#nav-auth-slot-mobile a.app-nav-pill {
+  background: var(--ink);
+  color: var(--cream);
+  padding: 11px 22px !important;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background .15s ease;
+  width: auto !important;
+  height: auto !important;
+  border: 0;
+}
+#nav-auth-slot a.app-nav-pill:hover,
+#nav-auth-slot-mobile a.app-nav-pill:hover {
+  background: var(--primary);
+}
+
+/* Avatar pill (logged in) — 40 px circle */
+.app-nav-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--cream-deep);
+  border: 1px solid var(--line-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+/* ════════ RECIPE CARD (rcard pattern) ═════════════════════════════
+   White surface, rounded 20 px, 200 px media at top with 1.05 zoom on hover.
+   Flag chip top-left = white pill with 🇮🇹 emoji (no big circle bubble),
+   bookmark heart top-right, time pill bottom-left.
+   Body: origin micro / Fraunces 700 title / tag pills.
+*/
+.recipe-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  display: block;
+  text-decoration: none;
+  color: var(--ink);
+}
+.recipe-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--line-soft);
+}
+.recipe-card-hero {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+  background-color: var(--cream-deep);
+}
+.recipe-card-hero img.recipe-card-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .25s ease;
+  z-index: 0 !important;
+}
+.recipe-card:hover .recipe-card-hero img.recipe-card-img {
+  transform: scale(1.04);
+}
+.recipe-card-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,.40) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Flag — small white pill with emoji inside (top-left), not a 38 px bubble */
+.recipe-card-flag {
+  position: absolute !important;
+  top: 12px !important;
+  left: 12px !important;
+  width: auto !important;
+  height: auto !important;
+  background: var(--white) !important;
+  border-radius: var(--radius-pill) !important;
+  padding: 6px 11px 6px 9px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: var(--ink) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  box-shadow: 0 4px 12px -4px rgba(0,0,0,.12);
+  z-index: 4 !important;
+  letter-spacing: -0.005em;
+}
+.recipe-card-flag .recipe-card-flag-text {
+  font-family: var(--font-body);
+}
+
+/* Auth pill — top-right, design-system spec: dark blur with cream text */
+.recipe-card-auth {
+  position: absolute !important;
+  top: 12px !important;
+  right: 12px !important;
+  background: rgba(21, 33, 26, .55) !important;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: var(--cream) !important;
+  font-family: var(--font-body) !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: .05em;
+  padding: 5px 10px !important;
+  border-radius: var(--radius-pill) !important;
+  z-index: 4 !important;
+}
+
+/* Bottom-of-hero floating meta (time / ingredients count etc.) */
+.recipe-card-meta-floating {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  z-index: 2;
+}
+.recipe-card-meta-floating > span {
+  background: rgba(21, 33, 26, .55);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: var(--cream);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+/* Card body */
+.recipe-card-body { padding: 14px 16px 16px; }
+.recipe-card-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+.recipe-card-origin,
+.recipe-card-region {
+  font-size: 11px;
+  color: var(--muted);
+}
+.recipe-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+/* ════════ HOME / DÉCOUVRIR HERO ════════════════════════════════
+   Big greeting in Fraunces with italic accent. No cluttered banner.
+*/
+.greeting {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(32px, 7vw, 56px);
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  color: var(--ink);
+  margin: 14px 0 8px;
+}
+.greeting em {
+  font-style: italic;
+  font-weight: 600;
+  color: var(--primary);
+}
+.greeting-sub {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+/* ════════ RECIPE DETAIL HERO ════════════════════════════════════
+   Full-bleed image, dark gradient overlay, content lives below the hero
+   (not anchored on top of the photo) — fixes the title-clipping bug. */
+.recipe-hero {
+  position: relative;
+  height: auto !important;
+  min-height: 240px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin: 16px 0 0;
+  /* Background image still loaded via inline style + img tag */
+}
+@media (min-width: 920px) {
+  .recipe-hero { min-height: 360px; }
+}
+@media (min-width: 1280px) {
+  .recipe-hero { min-height: 460px; }
+}
+.recipe-hero img.recipe-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+.recipe-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,.10) 0%, transparent 30%, rgba(0,0,0,.55) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Flag bubble — keep inside the hero box, never clip */
+.recipe-hero-flag {
+  position: absolute !important;
+  top: 16px !important;
+  left: 16px !important;
+  width: 44px !important;
+  height: 44px !important;
+  background: var(--white) !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  font-size: 22px !important;
+  z-index: 3 !important;
+  box-shadow: 0 6px 16px -6px rgba(0,0,0,.3);
+}
+
+/* Auth pill at top-right (compact, blur) */
+.recipe-hero-auth-pill {
+  position: absolute !important;
+  top: 18px !important;
+  right: 16px !important;
+  z-index: 3 !important;
+  background: rgba(21, 33, 26, .55) !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: var(--cream) !important;
+  font-family: var(--font-body);
+  font-size: 11px !important;
+  font-weight: 700;
+  letter-spacing: .05em;
+  padding: 6px 12px !important;
+  border-radius: var(--radius-pill) !important;
+}
+
+/* Hero inner (title + meta) anchored at the bottom — but with
+   real padding-top so the long title can never crash into the
+   flag/auth zones at the top. The h1 size is clamped so 2 lines fit. */
+.recipe-hero-inner {
+  position: absolute !important;
+  bottom: 18px;
+  left: 18px;
+  right: 18px;
+  z-index: 2;
+  padding-top: 70px;     /* clear the flag/auth row */
+  max-width: 720px;
+}
+@media (min-width: 920px) {
+  .recipe-hero-inner { bottom: 28px; left: 28px; right: 28px; padding-top: 90px; }
+}
+.recipe-hero-inner h1 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(22px, 5vw, 36px) !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.025em;
+  color: var(--cream) !important;
+  margin: 4px 0 8px;
+}
+@media (min-width: 920px) {
+  .recipe-hero-inner h1 { font-size: clamp(32px, 4vw, 44px) !important; }
+}
+.recipe-hero-inner h1 em {
+  font-style: italic;
+  font-weight: 600;
+  color: var(--gold);
+}
+.recipe-hero-origin {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(245, 247, 238, .8);
+  margin-bottom: 2px;
+}
+.recipe-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.recipe-hero-meta .meta-pill {
+  background: rgba(245, 247, 238, .15) !important;
+  color: var(--cream) !important;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: 11.5px !important;
+  padding: 5px 10px !important;
+  border-radius: var(--radius-pill) !important;
+}
+.recipe-hero-meta .meta-pill strong { color: var(--cream); }
+
+/* ════════ MOOD PILLS / FILTER PILLS ═════════════════════════════
+   Override polish.css with the canonical 08_ux_global look:
+   white surface + 1.5 px line border, hover lifts and recolors,
+   active state = filled in tinted background per family. */
+.pill-chip {
+  border-width: 1.5px !important;
+  font-size: 12.5px !important;
+}
+
+/* ════════ ACTIVE FILTERS BAR ════════════════════════════════════
+   Show the user's active filters as removable chips at the top. */
+.active-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 14px;
+  padding: 10px 14px;
+  background: var(--cream-deep);
+  border-radius: var(--radius);
+  font-size: 12.5px;
+}
+.active-bar small {
+  color: var(--muted);
+  font-weight: 500;
+}
+.active-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+}
+.active-chip .x {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1;
+}
+.active-chip:hover .x { color: var(--accent); }
