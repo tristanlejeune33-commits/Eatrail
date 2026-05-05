@@ -342,6 +342,384 @@ select:focus {
 ::selection { background: var(--primary); color: var(--cream); }
 
 /* ─────────────────────────────────────────────────────────
+ * Recipe card — design-system "rcard" pattern
+ * (floating flag + auth pill + meta-pills over hero)
+ * ───────────────────────────────────────────────────────── */
+.recipe-card {
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.recipe-card-hero {
+  position: relative;
+  height: 200px;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+.recipe-card-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,.45) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+.recipe-card-hero > * { position: relative; z-index: 2; }
+.recipe-card-img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: 0 !important;
+}
+
+/* Flag bubble — floats over hero */
+.recipe-card-flag {
+  position: absolute;
+  top: 14px; left: 14px;
+  width: 38px; height: 38px;
+  background: var(--white);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  z-index: 3 !important;
+  box-shadow: 0 4px 12px -4px rgba(0,0,0,.18);
+}
+
+/* Auth pill — backdrop blur over hero */
+.recipe-card .recipe-card-auth {
+  top: 14px; right: 14px;
+  font-size: 11px;
+  padding: 6px 11px;
+  z-index: 3;
+}
+
+/* Meta pills floating at bottom of hero */
+.recipe-card-meta-floating {
+  position: absolute;
+  bottom: 12px; left: 14px; right: 14px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  z-index: 3;
+}
+.recipe-card-meta-floating > span {
+  background: rgba(0, 0, 0, .42);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: var(--cream);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Recipe detail hero — bigger, more cinematic
+ * ───────────────────────────────────────────────────────── */
+.recipe-hero {
+  min-height: 280px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  position: relative;
+}
+@media (min-width: 920px) {
+  .recipe-hero { min-height: 380px; }
+}
+@media (min-width: 1280px) {
+  .recipe-hero { min-height: 440px; }
+}
+.recipe-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+.recipe-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,.18) 0%, transparent 30%, rgba(0,0,0,.55) 100%);
+  z-index: 1;
+}
+.recipe-hero-flag {
+  z-index: 3;
+  width: 48px; height: 48px;
+  font-size: 28px;
+  box-shadow: 0 6px 16px -6px rgba(0,0,0,.3);
+}
+.recipe-hero-auth-pill {
+  z-index: 3;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, .5);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Bottom nav — design system blur 14px + safe-area
+ * ───────────────────────────────────────────────────────── */
+.app-bottom-nav {
+  background: rgba(245, 247, 238, .96);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line);
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Top nav — sticky blur, design system spec
+ * ───────────────────────────────────────────────────────── */
+.app-nav {
+  background: rgba(245, 247, 238, .92);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Trail banner / dark stripe (design system "concept stripe")
+ * Used inline on home + recipe pages for "Voir le parcours"
+ * ───────────────────────────────────────────────────────── */
+.trail-banner,
+.concept-stripe {
+  background: var(--ink);
+  color: var(--cream);
+  border-radius: var(--radius);
+  padding: 22px 22px 20px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+.trail-banner::after,
+.concept-stripe::after {
+  content: '';
+  position: absolute;
+  bottom: -60px; right: -60px;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(217, 164, 65, .28), transparent 70%);
+  pointer-events: none;
+}
+.trail-banner > *,
+.concept-stripe > * { position: relative; z-index: 1; }
+.trail-banner h3,
+.concept-stripe h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: var(--ls-snug);
+  color: var(--cream);
+  margin-bottom: 8px;
+}
+.trail-banner h3 em,
+.concept-stripe h3 em {
+  color: var(--gold) !important;
+  font-style: italic;
+  font-weight: 600;
+}
+.trail-banner .meta { color: rgba(245, 247, 238, .65); font-size: 12px; margin-bottom: 14px; }
+.trail-banner .cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--gold);
+  color: var(--ink);
+  border: 0;
+  border-radius: var(--radius-pill);
+  padding: 12px 20px;
+  font-weight: 700;
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.trail-banner .cta:hover { transform: translateY(-1px); }
+
+/* ─────────────────────────────────────────────────────────
+ * Search field with brand "scan" affordance
+ * ───────────────────────────────────────────────────────── */
+.search-field {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px 14px 44px;
+  position: relative;
+  margin-bottom: 18px;
+}
+.search-field::before {
+  content: '🔍';
+  position: absolute;
+  left: 16px; top: 50%; transform: translateY(-50%);
+  font-size: 14px;
+  opacity: .55;
+}
+.search-field input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Tab row (used on recipe detail: ingredients / steps / reviews)
+ * ───────────────────────────────────────────────────────── */
+.tab-row {
+  display: flex;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 18px;
+}
+.tab-row .tab {
+  flex: 1;
+  padding: 14px 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  margin-bottom: -1px;
+  transition: color var(--dur-fast), border-color var(--dur-fast);
+}
+.tab-row .tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+.tab-row .tab:hover { color: var(--ink); }
+
+/* ─────────────────────────────────────────────────────────
+ * Stat cards (quad-stat row on recipe detail)
+ * ───────────────────────────────────────────────────────── */
+.recipe-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 16px 0 22px;
+}
+.recipe-stat {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 8px;
+  text-align: center;
+}
+.recipe-stat b {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.recipe-stat span {
+  display: block;
+  font-size: 10.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Ingredient row (checkbox list pattern)
+ * ───────────────────────────────────────────────────────── */
+.ing-row {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.ing-row:last-child { border-bottom: 0; }
+.ing-row .check {
+  width: 22px; height: 22px;
+  border-radius: 7px;
+  border: 1.5px solid var(--line);
+  background: var(--white);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all var(--dur-fast);
+}
+.ing-row.checked .check {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--cream);
+}
+.ing-row.checked .check::before { content: '✓'; font-size: 13px; font-weight: 700; }
+.ing-row.checked .label b {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: rgba(95, 110, 98, .4);
+}
+.ing-row .badge-rare {
+  background: var(--tint-accent);
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: var(--radius-pill);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+/* ─────────────────────────────────────────────────────────
+ * FAB bar (sticky CTA on recipe detail)
+ * ───────────────────────────────────────────────────────── */
+.fab-bar {
+  position: fixed;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  left: 16px; right: 16px;
+  z-index: 8;
+  pointer-events: none;
+}
+@media (min-width: 920px) {
+  .fab-bar { display: none; }   /* desktop has its own CTAs in the side card */
+}
+.fab-trail {
+  pointer-events: auto;
+  width: 100%;
+  background: var(--primary);
+  color: var(--cream);
+  border: 0;
+  border-radius: var(--radius-pill);
+  padding: 16px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 14px 30px -10px rgba(63, 139, 84, .55);
+  text-decoration: none;
+}
+.fab-trail .price-tag {
+  background: var(--primary-dark);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Hero gradient palette (for cards without a photo)
+ * Pulled directly from the design system's per-recipe gradients.
+ * ───────────────────────────────────────────────────────── */
+.h-carbo  { background: linear-gradient(135deg, #D9A441 0%, #F5F7EE 100%); }
+.h-bibi   { background: linear-gradient(135deg, #C85A3A 0%, #15211A 100%); }
+.h-mole   { background: linear-gradient(135deg, #5C2A1A 0%, #C85A3A 80%); }
+.h-ragu   { background: linear-gradient(135deg, #C85A3A 0%, #D9A441 100%); }
+.h-cacio  { background: linear-gradient(135deg, #F5F7EE 0%, #15211A 100%); }
+.h-tagine { background: linear-gradient(135deg, #D9A441 0%, #C85A3A 100%); }
+
+/* ─────────────────────────────────────────────────────────
  * Reduce motion — respect the OS setting
  * ───────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
