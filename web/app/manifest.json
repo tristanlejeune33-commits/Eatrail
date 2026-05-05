@@ -1,7 +1,7 @@
 {
   "name": "eatrail · cuisine le monde",
   "short_name": "eatrail",
-  "description": "Cuisine le monde, achète à côté. 625 recettes validées par des chefs natifs et 30 magasins NYC.",
+  "description": "Cuisine le monde, achète à côté. 625 recettes validées par des chefs natifs et un réseau de magasins partenaires.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

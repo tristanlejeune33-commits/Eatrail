@@ -3481,8 +3481,15 @@ textarea:focus-visible {
   font-family: var(--font-body);
   font-weight: 600;
   font-size: 13px;
+  line-height: 1.25;
   color: var(--ink);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  /* Allow long recipe names to wrap onto 2 lines instead of being
+     ellipsized — matches the mobile compact-card behavior. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
 }
 .cal-meal-meta {
   font-size: 11px;
@@ -4393,7 +4400,7 @@ textarea:focus-visible {
 
   /* Filter bar / search input: bigger target */
   .filter-bar { padding: 14px 16px; }
-  .filter-search input { font-size: 15px; padding: 10px 14px; }
+  .filter-search input { font-size: 15px; padding: 10px 14px 10px 40px; }
 
   /* Modal pickers (meal picker, barcode scanner, collection picker) — cap
      them so they don't stretch absurdly wide on a 1920px monitor. */

@@ -197,6 +197,61 @@ body.is-landing #nav-auth-slot-mobile a.app-nav-icon::after { font-size: 13px !i
   .app-nav-icon-desktop { display: none !important; }
 }
 
+/* ════════ DRAWER LOGOUT BUTTON ═══════════════════════════════════
+   Only shown when authed (body.is-authed). Sits at the bottom of the
+   drawer with a divider above it. */
+.app-drawer-logout-zone {
+  margin-top: auto;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--line-soft);
+  display: none;
+}
+body.is-authed .app-drawer-logout-zone { display: block; }
+.app-drawer-logout {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--terracotta);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background .15s ease, border-color .15s ease;
+}
+.app-drawer-logout:hover {
+  background: var(--tint-accent);
+  border-color: var(--terracotta);
+}
+.app-drawer-logout .ddl-emoji { font-size: 20px; }
+
+/* Force the drawer nav into a flex column so margin-top:auto on
+   the logout zone pushes it to the bottom. */
+.app-drawer-nav { display: flex; flex-direction: column; }
+
+/* ════════ FLAG ON RECIPE-CARD ═════════════════════════════════════
+   Make sure the inline SVG <img class="flag-emoji"> renders crisply
+   inside the white pill (top-left of the card). */
+.recipe-card-flag .flag-emoji {
+  height: 14px;
+  width: auto;
+  vertical-align: middle;
+}
+.recipe-hero-flag .flag-emoji {
+  height: 26px;
+  width: auto;
+}
+.recipe-hero-flag {
+  /* When wrapping a Twemoji <img>, the white circle should still
+     hug the SVG cleanly without empty padding. */
+  padding: 0 !important;
+}
+
 /* ════════ RECIPE CARD (rcard pattern) ═════════════════════════════
    White surface, rounded 20 px, 200 px media at top with 1.05 zoom on hover.
    Flag chip top-left = white pill with 🇮🇹 emoji (no big circle bubble),

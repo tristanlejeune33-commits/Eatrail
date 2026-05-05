@@ -50,8 +50,7 @@ window.eat = window.eat || {};
       <a class="recipe-card" href="${eat.routeUrl('recipe', [r.id])}">
         <div class="recipe-card-hero" style="background:${esc(r.gradient)}">
           ${imgHtml}
-          <div class="recipe-card-flag">${esc(r.origin.flag)}</div>
-          <div class="recipe-card-auth">AUTH ${r.auth}</div>
+          <div class="recipe-card-flag">${(eat.flagEmoji && eat.flagEmoji.flagToImgHtml) ? eat.flagEmoji.flagToImgHtml(r.origin.flag) : esc(r.origin.flag)}<span class="recipe-card-flag-text">${esc(r.origin.country)}</span></div>
           ${isSaved ? '<div class="recipe-card-auth" style="top:56px;background:var(--accent);">★ Favori</div>' : ''}
           <div class="recipe-card-meta-floating">
             <span>${eat.fmtDuration(r.duration)}</span>
@@ -208,7 +207,7 @@ window.eat = window.eat || {};
         ${onbBanner}
 
         <h1 class="greeting">${greetingText}<br/><em>Que cuisinons</em>-nous ?</h1>
-        <p class="greeting-sub">${today} · 30 magasins ouverts à NYC · ${recipes.length} recettes prêtes</p>
+        <p class="greeting-sub">${today} · ${recipes.length} recettes du monde prêtes à cuisiner</p>
 
         <div class="trail-banner">
           <div class="eyebrow">Ton trail · Ce soir</div>
@@ -219,7 +218,7 @@ window.eat = window.eat || {};
 
         <section class="home-hero">
           <div class="home-hero-inner">
-            <span class="home-hero-eyebrow">NYC · v1.6 · ${recipes.length} recettes</span>
+            <span class="home-hero-eyebrow">v1.6 · ${recipes.length} recettes du monde</span>
             <h1>Cuisine le monde.<br/><em>Achète à côté.</em></h1>
             <p>Choisis un plat. eatrail te dit quoi acheter — et où le trouver vraiment, autour de toi.</p>
             <div class="home-hero-cta">
@@ -613,8 +612,7 @@ window.eat = window.eat || {};
 
         <div class="recipe-hero" style="background:${esc(r.gradient)}">
           ${(window.EATRAIL_IMAGES || {})[r.id] ? `<img class="recipe-hero-img" src="${esc(window.EATRAIL_IMAGES[r.id])}" alt="" onerror="this.remove();" />` : ''}
-          <div class="recipe-hero-flag">${esc(r.origin.flag)}</div>
-          <span class="recipe-hero-auth-pill">AUTH ${r.auth} · ${esc((r.origin.region || r.origin.country).toUpperCase())}</span>
+          <div class="recipe-hero-flag">${(eat.flagEmoji && eat.flagEmoji.flagToImgHtml) ? eat.flagEmoji.flagToImgHtml(r.origin.flag) : esc(r.origin.flag)}</div>
           <div class="recipe-hero-inner">
             <div class="recipe-hero-origin">${esc(r.origin.country)} · ${esc(r.origin.region)}</div>
             <h1>${esc(r.title)}</h1>
@@ -714,7 +712,7 @@ window.eat = window.eat || {};
             <div class="side-card">
               <h3>📍 Suivre le trail</h3>
               <p style="font-size:14px;color:var(--muted);margin-bottom:16px;">
-                Trouve les ${r.ingredients.length} ingrédients dans les magasins NYC les plus authentiques.
+                Trouve les ${r.ingredients.length} ingrédients dans les magasins partenaires les plus authentiques.
               </p>
               <a class="btn btn-primary btn-block side-cta" href="${eat.routeUrl('trail', [r.id])}">
                 Voir où acheter →
@@ -902,7 +900,7 @@ window.eat = window.eat || {};
 
     return `
       <div class="container page fade-in">
-        <span class="page-eyebrow">${pos ? 'Magasins autour de toi' : 'Annuaire NYC'}</span>
+        <span class="page-eyebrow">${pos ? 'Magasins autour de toi' : 'Annuaire des magasins'}</span>
         <h1 class="page-title">${recipe ? `Magasins pour ${esc(recipe.title)}` : 'Magasins'}</h1>
         ${recipe
           ? `<p class="page-lead">Trouve les ${recipe.ingredients.length} ingrédients de cette recette dans le minimum de magasins. <a href="${eat.routeUrl('recipe', [recipe.id])}" style="color:var(--primary);">← retour à la recette</a></p>`
@@ -1001,7 +999,7 @@ window.eat = window.eat || {};
         ? `<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">${shops.length} résultat${shops.length > 1 ? 's' : ''} dans ${ctx.radius} mi</div>`
         : source === 'static-fallback'
         ? `<div style="font-size:12px;color:var(--gold);margin-bottom:10px;">⚠ Mode hors-ligne — ${shops.length} magasin${shops.length > 1 ? 's' : ''} curés affichés</div>`
-        : `<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">${shops.length} magasin${shops.length > 1 ? 's' : ''} curés NYC</div>`;
+        : `<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">${shops.length} magasin${shops.length > 1 ? 's' : ''} partenaires</div>`;
       listZone.innerHTML = sourceNote + `<div class="shop-grid">${shops.map(shopCard).join('')}</div>`;
     }
   }
@@ -1287,7 +1285,7 @@ window.eat = window.eat || {};
         <!-- Footer with member since -->
         <div class="dna-footer">
           <div>Membre depuis <strong>${esc(memberSince)}</strong></div>
-          <div>eatrail · NYC</div>
+          <div>eatrail · cuisine du monde</div>
         </div>
       </div>
 
@@ -2392,7 +2390,7 @@ window.eat = window.eat || {};
 
         <div class="onb-section">
           <div class="onb-section-title">Code postal</div>
-          <div class="onb-section-help">Pour trouver les magasins les plus proches. Par défaut : Midtown NYC.</div>
+          <div class="onb-section-help">Pour trouver les magasins les plus proches.</div>
           <input type="text" id="onb-zip" class="field-input" maxlength="10" value="${esc(p.zip)}" style="max-width:200px;" />
         </div>
 
@@ -2936,7 +2934,7 @@ window.eat = window.eat || {};
         <section class="lp-hero">
           <div class="lp-hero-bg" aria-hidden="true"></div>
           <div class="container lp-hero-inner">
-            <span class="page-eyebrow">NYC · ${totalShops} magasins · ${totalRecipes} recettes</span>
+            <span class="page-eyebrow">${totalRecipes} recettes · ${totalShops} magasins partenaires · 25 cuisines</span>
             <h1 class="lp-hero-title">Cuisine le monde.<br/><em>Achète à côté.</em></h1>
             <p class="lp-hero-lead">
               eatrail relie chaque recette aux magasins qui vendent vraiment les bons ingrédients
@@ -2969,7 +2967,7 @@ window.eat = window.eat || {};
           <div class="lp-promise">
             <div class="lp-promise-mark">M</div>
             <h3>Magasins <em>vrais</em></h3>
-            <p>${totalShops} adresses NYC sélectionnées : H Mart, Kalustyan's, Sahadi's, Tulcingo Deli — pas une enseigne sponsorisée.</p>
+            <p>${totalShops} adresses sélectionnées chez nos magasins partenaires (épiceries spécialisées, marchés ethniques, primeurs) — pas une enseigne sponsorisée.</p>
           </div>
         </section>
 
@@ -2997,7 +2995,7 @@ window.eat = window.eat || {};
 
         <footer class="lp-footer container">
           <div>© 2026 eatrail · <em>Follow the flavor trail.</em></div>
-          <div>NYC · ${totalShops} magasins · ${totalRecipes} recettes · ${cuisineCount} cuisines</div>
+          <div>${totalRecipes} recettes · ${cuisineCount} cuisines du monde · ${totalShops} magasins partenaires</div>
         </footer>
 
       </div>

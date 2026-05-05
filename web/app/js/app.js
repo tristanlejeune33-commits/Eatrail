@@ -14,19 +14,21 @@
   };
 
   // ── Render principal ─────────────────────────────────────
+  // Routes accessible without an account (login/signup/forgot/reset).
+  // Anything else forces the landing page when unauthenticated.
+  const ANON_ROUTES = new Set(['login', 'signup', 'forgot', 'reset']);
+
   function render() {
     const route = eat.parseRoute();
     eat.updateNav(route);
     let html = '';
+    const authed = !!(eat.auth && eat.auth.isAuthenticated && eat.auth.isAuthenticated());
+    // Hard gate: when not authenticated, the ONLY thing visible is the
+    // landing page — except for the auth routes themselves so the user
+    // can actually sign up / log in. ?app=1 still bypasses for QA.
+    const allowAnon = ANON_ROUTES.has(route.name) || route.query.app === '1';
+    const showLanding = !authed && !allowAnon && typeof eat.viewLanding === 'function';
     try {
-      // Landing-first: unauthenticated visitors see the marketing landing
-      // on the home route. Once they sign up / log in, the SPA home renders.
-      // Override via ?app=1 in the URL for QA / preview without authing.
-      const showLanding =
-        route.name === 'home'
-        && !(eat.auth && eat.auth.isAuthenticated && eat.auth.isAuthenticated())
-        && route.query.app !== '1'
-        && typeof eat.viewLanding === 'function';
       if (showLanding) {
         html = eat.viewLanding();
       } else switch (route.name) {
@@ -62,6 +64,7 @@
     // Tag the body when we're rendering the landing so nav rules can hide
     // the in-app navigation (only "Se connecter" is allowed before login).
     document.body.classList.toggle('is-landing', !!showLanding);
+    document.body.classList.toggle('is-authed', !!authed);
     updateCartBadge();
     updateNavAuthState();
     // Let modules that need to post-process the rendered DOM know they can
@@ -78,12 +81,12 @@
     const slotMobile = document.getElementById('nav-auth-slot-mobile');
     if (slotDesktop) {
       slotDesktop.innerHTML = u
-        ? `<a href="#/account" class="app-nav-avatar" data-route="account" aria-label="Mon compte">${u.avatar}</a>`
+        ? `<a href="#/settings" class="app-nav-avatar" data-route="settings" aria-label="Mon compte" title="Mon compte" style="display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:var(--cream-deep);border:1.5px solid var(--ink);font-size:22px;line-height:1;text-decoration:none;flex-shrink:0;">${u.avatar}</a>`
         : `<a href="#/login" class="app-nav-pill" data-route="account" style="width:auto;height:auto;padding:8px 16px;font-size:13px;font-weight:600;border-radius:999px;">Se connecter</a>`;
     }
     if (slotMobile) {
       slotMobile.innerHTML = u
-        ? `<a href="#/account" class="app-nav-avatar" data-route="account" aria-label="Mon compte">${u.avatar}</a>`
+        ? `<a href="#/settings" class="app-nav-avatar" data-route="settings" aria-label="Mon compte" title="Mon compte" style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:var(--cream-deep);border:1.5px solid var(--ink);font-size:20px;line-height:1;text-decoration:none;flex-shrink:0;">${u.avatar}</a>`
         : `<a href="#/login" class="app-nav-icon" data-route="account" aria-label="Se connecter">👤</a>`;
     }
     const route = eat.parseRoute();
@@ -129,6 +132,21 @@
     if (e.target.closest && e.target.closest('[data-drawer-link]')) {
       // Let the link navigate, then close the drawer
       setDrawer(false);
+    }
+    // Logout button at bottom of the mobile drawer
+    if (e.target.closest && e.target.closest('#drawer-logout-btn')) {
+      e.preventDefault();
+      setDrawer(false);
+      try {
+        if (eat.auth && typeof eat.auth.logout === 'function') {
+          eat.auth.logout();
+        }
+      } catch (err) { console.warn('logout error', err); }
+      // Land them on the marketing page after sign-out
+      location.hash = '#/';
+      // Trigger a fresh render so the nav switches back to "Se connecter"
+      if (typeof eat.render === 'function') eat.render();
+      else if (typeof render === 'function') render();
     }
   });
   // Close drawer on Escape
@@ -1650,6 +1668,9 @@
     }
     location.hash = eat.routeUrl('home');
   }
+
+  // Expose so other modules (e.g. logout handler) can trigger a re-render.
+  eat.render = render;
 
   // ── Boot ─────────────────────────────────────────────────
   window.addEventListener('hashchange', render);

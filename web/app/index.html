@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="description" content="eatrail — cuisine le monde, achète à côté. Recettes du monde et magasins NYC en une seule app." />
+<meta name="description" content="eatrail — cuisine le monde, achète à côté. Recettes du monde entier et magasins partenaires dans une seule app." />
 <meta name="theme-color" content="#3F8B54" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
@@ -88,7 +88,7 @@
       <div class="app-drawer-section">Découvrir</div>
       <a href="#/" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">🧭</span> <span>Accueil</span></a>
       <a href="#/recipes" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">📖</span> <span>Toutes les recettes</span></a>
-      <a href="#/shops" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">📍</span> <span>Magasins NYC</span></a>
+      <a href="#/shops" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">📍</span> <span>Magasins partenaires</span></a>
 
       <div class="app-drawer-section">Ma cuisine</div>
       <a href="#/pantry" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">🧺</span> <span>Mes provisions</span></a>
@@ -103,6 +103,14 @@
       <a href="#/preferences" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">🎯</span> <span>Mes préférences</span></a>
       <a href="#/settings" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">⚙</span> <span>Profil & avatar</span></a>
       <a href="#/security" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">🔒</span> <span>Sécurité</span></a>
+
+      <!-- Logout — only visible when authed (toggled via body.is-authed in CSS) -->
+      <div class="app-drawer-logout-zone">
+        <button type="button" class="app-drawer-logout" id="drawer-logout-btn">
+          <span class="ddl-emoji">🚪</span>
+          <span>Se déconnecter</span>
+        </button>
+      </div>
     </nav>
   </aside>
 </div>
@@ -119,7 +127,7 @@
 <footer class="app-footer">
   <div class="container app-footer-inner">
     <div>© 2026 eatrail · <em>Follow the flavor trail.</em></div>
-    <div>v1.6 · 625 recettes · 25 cuisines · 30 magasins NYC</div>
+    <div>v1.6 · 625 recettes · 25 cuisines du monde</div>
   </div>
 </footer>
 
