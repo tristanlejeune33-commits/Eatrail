@@ -61,6 +61,21 @@
       html = eat.viewNotFound('Erreur de rendu');
     }
     root.innerHTML = html;
+    // Defensive cleanup: any drawer / modal that was open in the previous
+    // view must be closed so it doesn't visually overlap the new page
+    // (mobile Safari was stacking the previous view behind the new one
+    // when the drawer's position:fixed lingered through navigation).
+    const drawer = document.getElementById('app-drawer');
+    if (drawer) {
+      drawer.classList.remove('is-open');
+      drawer.setAttribute('aria-hidden', 'true');
+    }
+    const burger = document.getElementById('nav-burger-toggle');
+    if (burger) {
+      burger.classList.remove('is-open');
+      burger.setAttribute('aria-expanded', 'false');
+    }
+    document.body.classList.remove('drawer-open');
     // Tag the body when we're rendering the landing so nav rules can hide
     // the in-app navigation (only "Se connecter" is allowed before login).
     document.body.classList.toggle('is-landing', !!showLanding);
