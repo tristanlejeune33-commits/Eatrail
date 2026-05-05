@@ -1,0 +1,353 @@
+/* eatrail · Design System v2 polish layer
+ *
+ * Loaded AFTER styles.css. Refines atoms (buttons, inputs, eyebrows, cards,
+ * shadows) to match the canonical design-system spec from `eatrail ux/`.
+ * Doesn't redefine layout — just sands the rough edges so the brand reads
+ * consistently across pages.
+ *
+ * Reference: eatrail ux/preview/04_components_atoms.html,
+ *            eatrail ux/preview/05_components_cards.html,
+ *            eatrail ux/preview/06_brand.html.
+ */
+
+/* ─────────────────────────────────────────────────────────
+ * Eyebrow w/ pulse dot (the "live" tag at the top of every section)
+ * ───────────────────────────────────────────────────────── */
+.page-eyebrow,
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: var(--fs-eyebrow);
+  font-weight: 700;
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--primary);
+}
+.page-eyebrow::before,
+.eyebrow:not(.no-dot)::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 4px rgba(63, 139, 84, .18);
+  animation: dot-pulse 2s var(--ease-out) infinite;
+}
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: .55; transform: scale(.78); }
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Italic accent inside Fraunces headlines (signature touch)
+ * ───────────────────────────────────────────────────────── */
+.page-title em,
+.auth-title em,
+h1 em,
+h2 em {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Buttons — tighten the canonical pill-shape language
+ * Existing .btn class stays valid; we just polish hover/focus states.
+ * ───────────────────────────────────────────────────────── */
+.btn {
+  transition:
+    background-color var(--dur) var(--ease-out),
+    color            var(--dur) var(--ease-out),
+    border-color     var(--dur) var(--ease-out),
+    transform        var(--dur-fast) var(--ease-out),
+    box-shadow       var(--dur) var(--ease-out);
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px -10px rgba(63, 139, 84, .55);
+}
+.btn-ink:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px -10px rgba(21, 33, 26, .45);
+}
+.btn:active,
+.btn-primary:active,
+.btn-ink:active {
+  transform: scale(.98);
+  box-shadow: none;
+}
+/* Focus ring (keyboard-only) */
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(63, 139, 84, .35);
+}
+/* Soft tint variant (used for "secondary action" CTAs) */
+.btn-soft {
+  background: var(--tint-primary);
+  color: var(--primary);
+  border: 1px solid transparent;
+}
+.btn-soft:hover {
+  background: var(--primary);
+  color: var(--cream);
+}
+/* Link-style button with arrow grow */
+.btn-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: var(--primary);
+  padding: 8px 0;
+  font-weight: 600;
+  font-size: var(--fs-small);
+}
+.btn-link::after {
+  content: '→';
+  transition: transform var(--dur) var(--ease-out);
+}
+.btn-link:hover::after { transform: translateX(4px); }
+
+/* ─────────────────────────────────────────────────────────
+ * Inputs — focus ring matches the design system spec
+ * ───────────────────────────────────────────────────────── */
+.field-input,
+input[type="text"]:not(.filter-toolbar-search input),
+input[type="email"],
+input[type="password"],
+input[type="search"]:not(.filter-toolbar-search input),
+input[type="number"],
+input[type="tel"],
+textarea,
+select:not(.filter-toolbar-select):not(.filter-chip) {
+  transition: border-color var(--dur-fast) var(--ease-out),
+              box-shadow   var(--dur-fast) var(--ease-out);
+}
+.field-input:focus,
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+input[type="number"]:focus,
+input[type="tel"]:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(63, 139, 84, .18);
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Cards — global hover lift (desktop only) & consistent shadow
+ * ───────────────────────────────────────────────────────── */
+@media (hover: hover) and (pointer: fine) {
+  .recipe-card,
+  .shop-card,
+  .collection-card,
+  .opt-card,
+  .level-card {
+    transition:
+      transform   var(--dur) var(--ease-out),
+      box-shadow  var(--dur) var(--ease-out),
+      border-color var(--dur) var(--ease-out);
+  }
+  .recipe-card:hover,
+  .shop-card:hover,
+  .collection-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+    border-color: var(--primary);
+  }
+}
+/* Touch devices: scale-press instead of lift */
+@media (hover: none) {
+  .recipe-card:active,
+  .shop-card:active,
+  .collection-card:active {
+    transform: scale(.97);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Auth cards — radius-lg + spacing per design system
+ * ───────────────────────────────────────────────────────── */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background:
+    radial-gradient(ellipse 600px 400px at 100% 0%, rgba(217, 164, 65, .15) 0%, transparent 60%),
+    radial-gradient(ellipse 500px 400px at 0% 100%, rgba(63, 139, 84, .12) 0%, transparent 60%),
+    var(--cream);
+}
+.auth-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 36px;
+  box-shadow: var(--shadow-soft);
+}
+@media (max-width: 480px) {
+  .auth-page { padding: 16px; }
+  .auth-card { padding: 28px 22px; border-radius: var(--radius); }
+}
+.auth-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(28px, 4vw, 38px);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--ls-snug);
+  margin: 4px 0 6px;
+}
+.auth-subtitle {
+  color: var(--muted);
+  font-size: var(--fs-body);
+  margin-bottom: 24px;
+}
+.auth-submit {
+  width: 100%;
+  margin-top: 8px;
+  font-size: 15px;
+  padding: 14px 22px;
+}
+
+/* Field error ⚠ pictogram only when there's text — empty errors stayed as
+   ghost icons because [hidden] was beaten by display:flex on .field-error.
+   Already pinned globally via [hidden] !important, but keep a defensive
+   check in case markup misses the hidden attribute. */
+.field-error:empty { display: none !important; }
+
+/* ─────────────────────────────────────────────────────────
+ * Section rhythm — concept stripes & breathing room
+ * ───────────────────────────────────────────────────────── */
+.page {
+  padding-top: 28px;
+  padding-bottom: 80px;
+}
+.page-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(34px, 5.2vw, 56px);
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-tight);
+  margin: 6px 0 14px;
+}
+.page-lead {
+  color: var(--muted);
+  font-size: var(--fs-body-lg);
+  line-height: var(--lh-normal);
+  max-width: 640px;
+  margin-bottom: 28px;
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Recipe hero — design-system protection overlay
+ * ───────────────────────────────────────────────────────── */
+.recipe-hero { border-radius: var(--radius-lg); }
+.recipe-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 35%, rgba(0, 0, 0, .42) 100%);
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+.recipe-hero > * { position: relative; z-index: 2; }
+
+/* Soft polish on the card auth-pill (keeps it readable on any bg image) */
+.recipe-card-auth,
+.recipe-hero-auth-pill {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, .42);
+  color: var(--cream);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: 5px 11px;
+  border-radius: var(--radius-pill);
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Validator card — friendly cream stripe with avatar
+ * ───────────────────────────────────────────────────────── */
+.validator-card {
+  background: var(--cream-deep);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.vc-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--cream);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.vc-info { flex: 1; min-width: 0; }
+.vc-info b {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+.vc-info span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.vc-stars {
+  color: var(--gold);
+  font-size: 14px;
+  letter-spacing: 2px;
+  flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Scrollbar polish (subtle, on-brand)
+ * ───────────────────────────────────────────────────────── */
+@media (hover: hover) and (pointer: fine) {
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 999px;
+    border: 2px solid var(--cream);
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+  ::-webkit-scrollbar-track { background: transparent; }
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Selection — brand color
+ * ───────────────────────────────────────────────────────── */
+::selection { background: var(--primary); color: var(--cream); }
+
+/* ─────────────────────────────────────────────────────────
+ * Reduce motion — respect the OS setting
+ * ───────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

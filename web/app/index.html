@@ -14,9 +14,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<!-- Design system tokens (loaded BEFORE styles.css so they're the canonical source) -->
+<!-- Design system: tokens first (canonical vars), then base styles, then
+     a thin polish layer that aligns atoms / hover states / spacing with
+     the eatrail design-system spec without rewriting layout. -->
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="polish.css">
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">

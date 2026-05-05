@@ -1644,7 +1644,7 @@ window.eat = window.eat || {};
       <div class="auth-page fade-in">
         <div class="auth-card">
           <div class="auth-logo"><svg class="auth-logo-mark" viewBox="0 0 280 80" aria-hidden="true" focusable="false"><path d="M 8 26 Q 70 8, 140 22 T 264 14" stroke="#D9A441" stroke-width="3.5" stroke-linecap="round" fill="none"/><circle cx="264" cy="14" r="4.5" fill="#C85A3A"/><text x="8" y="68" font-family="Fraunces, Georgia, serif" font-weight="700" font-size="44" letter-spacing="-1.6" fill="#15211A">eat<tspan font-weight="600" font-style="italic" fill="#C85A3A">rail</tspan></text></svg></div>
-          <h1 class="auth-title">Bon retour</h1>
+          <h1 class="auth-title">Bon <em>retour</em></h1>
           <p class="auth-subtitle">Connecte-toi pour retrouver tes favoris, ton panier et tes avis.</p>
 
           ${bannerHtml}
@@ -1704,7 +1704,7 @@ window.eat = window.eat || {};
       <div class="auth-page fade-in">
         <div class="auth-card">
           <div class="auth-logo"><svg class="auth-logo-mark" viewBox="0 0 280 80" aria-hidden="true" focusable="false"><path d="M 8 26 Q 70 8, 140 22 T 264 14" stroke="#D9A441" stroke-width="3.5" stroke-linecap="round" fill="none"/><circle cx="264" cy="14" r="4.5" fill="#C85A3A"/><text x="8" y="68" font-family="Fraunces, Georgia, serif" font-weight="700" font-size="44" letter-spacing="-1.6" fill="#15211A">eat<tspan font-weight="600" font-style="italic" fill="#C85A3A">rail</tspan></text></svg></div>
-          <h1 class="auth-title">Crée ton compte</h1>
+          <h1 class="auth-title">Crée ton <em>compte</em></h1>
           <p class="auth-subtitle">Rejoins eatrail pour sauvegarder tes recettes, suivre ton trail et noter tes plats préférés.</p>
 
           <form id="signup-form" data-next="${esc(next)}" novalidate>
@@ -1804,7 +1804,7 @@ window.eat = window.eat || {};
       <div class="auth-page fade-in">
         <div class="auth-card">
           <div class="auth-logo"><svg class="auth-logo-mark" viewBox="0 0 280 80" aria-hidden="true" focusable="false"><path d="M 8 26 Q 70 8, 140 22 T 264 14" stroke="#D9A441" stroke-width="3.5" stroke-linecap="round" fill="none"/><circle cx="264" cy="14" r="4.5" fill="#C85A3A"/><text x="8" y="68" font-family="Fraunces, Georgia, serif" font-weight="700" font-size="44" letter-spacing="-1.6" fill="#15211A">eat<tspan font-weight="600" font-style="italic" fill="#C85A3A">rail</tspan></text></svg></div>
-          <h1 class="auth-title">Mot de passe oublié</h1>
+          <h1 class="auth-title">Mot de passe <em>oublié</em></h1>
           <p class="auth-subtitle">Indique l'e-mail du compte. On t'envoie un lien pour en créer un nouveau.</p>
 
           <form id="forgot-form" novalidate>
@@ -1853,7 +1853,7 @@ window.eat = window.eat || {};
       <div class="auth-page fade-in">
         <div class="auth-card">
           <div class="auth-logo"><svg class="auth-logo-mark" viewBox="0 0 280 80" aria-hidden="true" focusable="false"><path d="M 8 26 Q 70 8, 140 22 T 264 14" stroke="#D9A441" stroke-width="3.5" stroke-linecap="round" fill="none"/><circle cx="264" cy="14" r="4.5" fill="#C85A3A"/><text x="8" y="68" font-family="Fraunces, Georgia, serif" font-weight="700" font-size="44" letter-spacing="-1.6" fill="#15211A">eat<tspan font-weight="600" font-style="italic" fill="#C85A3A">rail</tspan></text></svg></div>
-          <h1 class="auth-title">Nouveau mot de passe</h1>
+          <h1 class="auth-title">Nouveau <em>mot de passe</em></h1>
           <p class="auth-subtitle">Pour le compte <strong>${esc(email)}</strong>.</p>
 
           <form id="reset-form" data-token="${esc(token)}" novalidate>
