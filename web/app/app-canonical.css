@@ -86,6 +86,39 @@
   background: var(--primary);
 }
 
+/* ════════ LANDING NAV (unauth on home) ═══════════════════════════
+   On landing, the entire app-nav-links-desktop container is hidden
+   by polish.css for visual simplicity — but #nav-auth-slot lives
+   *inside* that container. Restore visibility so "Se connecter" is
+   the only visible action on the landing page. */
+body.is-landing .app-nav-links-desktop { display: flex !important; }
+body.is-landing .app-nav-links-desktop > .app-nav-link { display: none !important; }
+body.is-landing .app-nav-links-desktop > #nav-auth-slot { display: inline-flex !important; }
+body.is-landing .app-nav-top-mobile #nav-auth-slot-mobile { display: inline-flex !important; }
+/* Mobile cart icon also hidden on landing — only login matters */
+body.is-landing .app-nav-top-mobile > a.app-nav-icon[data-route="cart"] { display: none !important; }
+
+/* On the landing, the mobile auth slot should render the full
+   "Se connecter" pill (not the 👤 icon) so it's instantly understood. */
+body.is-landing #nav-auth-slot-mobile a.app-nav-icon {
+  width: auto !important;
+  height: auto !important;
+  border-radius: var(--radius-pill) !important;
+  background: var(--ink) !important;
+  color: var(--cream) !important;
+  border: 0 !important;
+  padding: 9px 16px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  font-family: var(--font-body) !important;
+}
+body.is-landing #nav-auth-slot-mobile a.app-nav-icon::after {
+  content: 'Se connecter';
+  margin-left: 0;
+}
+body.is-landing #nav-auth-slot-mobile a.app-nav-icon { font-size: 0 !important; }
+body.is-landing #nav-auth-slot-mobile a.app-nav-icon::after { font-size: 13px !important; }
+
 /* Avatar pill (logged in) — 40 px circle */
 .app-nav-avatar {
   width: 40px;

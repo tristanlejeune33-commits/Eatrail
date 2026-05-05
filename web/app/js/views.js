@@ -446,11 +446,7 @@ window.eat = window.eat || {};
         </div>
 
         <!-- Filtres avancés : panel collapsible (auto-open si un filtre actif) -->
-        <div class="advanced-filters" id="advanced-filters" ${(filters.category || filters.mood || filters.diet || excludeAllergens.length) ? '' : 'hidden'}>
-          <div class="adv-group">
-            <div class="adv-group-label">Catégorie</div>
-            <div class="pill-row">${categoryChips}</div>
-          </div>
+        <div class="advanced-filters" id="advanced-filters" ${(filters.mood || filters.diet || excludeAllergens.length) ? '' : 'hidden'}>
           <div class="adv-group">
             <div class="adv-group-label">Humeur</div>
             <div class="pill-row">${moodChips}</div>
