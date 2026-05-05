@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 80" width="280" height="80">
+  
+  <rect width="280" height="80" fill="#15211A"></rect>
+  <path d="M 16 30 Q 76 12, 144 26 T 264 18" stroke="#D9A441" stroke-width="3.5" stroke-linecap="round" fill="none"></path>
+  <circle cx="264" cy="18" r="4.5" fill="#C85A3A"></circle>
+  <text x="16" y="68" font-family="Fraunces, Georgia, serif" font-weight="700" font-size="44" letter-spacing="-1.6" fill="#F5F7EE">eat<tspan font-weight="600" font-style="italic" fill="#D9A441">rail</tspan></text>
+</svg>

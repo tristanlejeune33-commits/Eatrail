@@ -14,6 +14,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+<!-- Design system tokens (loaded BEFORE styles.css so they're the canonical source) -->
+<link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="styles.css">
 
 <!-- PWA -->
@@ -27,9 +29,14 @@
 <nav class="app-nav">
   <div class="container app-nav-inner">
     <a href="#/" class="app-logo" aria-label="eatrail · accueil">
-      <span class="app-logo-dot"></span>
-      eatrail
-      <span class="app-logo-tag">v1.6</span>
+      <!-- Knife-mark wordmark (design system v2): gold sweep ending in
+           a terracotta dot, above an "eat" upright + "rail" italic accent.
+           SVG so it renders identically on every OS / browser. -->
+      <svg class="app-logo-mark" viewBox="0 0 280 80" aria-hidden="true" focusable="false">
+        <path d="M 8 26 Q 70 8, 140 22 T 264 14" stroke="#D9A441" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+        <circle cx="264" cy="14" r="4.5" fill="#C85A3A"/>
+        <text x="8" y="68" font-family="Fraunces, Georgia, serif" font-weight="700" font-size="44" letter-spacing="-1.6" fill="#15211A">eat<tspan font-weight="600" font-style="italic" fill="#C85A3A">rail</tspan></text>
+      </svg>
     </a>
 
     <div class="app-nav-links app-nav-links-desktop" id="nav-links">

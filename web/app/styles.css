@@ -101,24 +101,24 @@ img { max-width: 100%; display: block; }
   gap: 12px;
 }
 .app-logo {
-  display: flex; align-items: center; gap: 10px;
-  font-family: 'Fraunces', serif; font-weight: 800; font-size: 22px;
-  color: var(--ink);
+  display: flex; align-items: center;
   flex-shrink: 0;
+  text-decoration: none;
 }
-.app-logo-dot {
-  width: 12px; height: 12px; border-radius: 50%;
-  background: var(--primary);
-  box-shadow: 0 0 0 4px rgba(63, 139, 84, .22);
+/* Knife-mark SVG wordmark (design system v2). The SVG keeps the gold
+   sweep + terracotta dot above an "eat" upright + "rail" italic accent. */
+.app-logo-mark {
+  height: 36px;
+  width: auto;
+  display: block;
 }
-.app-logo-tag {
-  font-family: 'Inter', sans-serif;
-  font-size: 11px; font-weight: 600;
-  background: rgba(63, 139, 84, .12);
-  color: var(--primary);
-  padding: 3px 8px; border-radius: 999px;
-  letter-spacing: .05em;
+@media (max-width: 600px) {
+  .app-logo-mark { height: 30px; }
 }
+/* Legacy .app-logo-dot / .app-logo-tag are no longer in the markup. The
+   classes are kept here only to neutralize old cached HTML; harmless
+   now that the SVG is the only child. */
+.app-logo-dot, .app-logo-tag { display: none; }
 
 /* Liens nav desktop */
 .app-nav-links-desktop {
@@ -1943,12 +1943,14 @@ textarea:focus-visible {
   max-width: 720px;
 }
 .auth-logo {
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-  font-family: 'Fraunces', serif; font-weight: 800; font-size: 24px;
-  color: var(--ink);
+  display: flex; align-items: center; justify-content: center;
   margin-bottom: 24px;
 }
-.auth-logo .app-logo-dot { width: 14px; height: 14px; }
+.auth-logo-mark {
+  height: 44px;
+  width: auto;
+  display: block;
+}
 .auth-title {
   font-family: 'Fraunces', serif;
   font-weight: 700;
