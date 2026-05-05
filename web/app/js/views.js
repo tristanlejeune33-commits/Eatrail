@@ -1924,15 +1924,6 @@ window.eat = window.eat || {};
               <a class="acc-nav-item ${activeTab === 'security' ? 'is-active' : ''}" href="${eat.routeUrl('security')}">
                 <span class="acc-nav-icon">🔒</span>Sécurité
               </a>
-              <a class="acc-nav-item" href="${eat.routeUrl('saved')}">
-                <span class="acc-nav-icon">★</span>Mes favoris
-              </a>
-              <a class="acc-nav-item" href="${eat.routeUrl('cart')}">
-                <span class="acc-nav-icon">🛒</span>Mon panier
-              </a>
-              <a class="acc-nav-item" href="${eat.routeUrl('pantry')}">
-                <span class="acc-nav-icon">🥕</span>Mes provisions
-              </a>
               <button type="button" class="acc-nav-item acc-nav-danger" id="acc-logout" style="width:100%;text-align:left;">
                 <span class="acc-nav-icon">↪</span>Se déconnecter
               </button>
@@ -2691,9 +2682,6 @@ window.eat = window.eat || {};
               <a class="acc-nav-item ${activeTab === 'preferences' ? 'is-active' : ''}" href="${eat.routeUrl('preferences')}"><span class="acc-nav-icon">🎯</span>Préférences</a>
               <a class="acc-nav-item ${activeTab === 'settings' ? 'is-active' : ''}" href="${eat.routeUrl('settings')}"><span class="acc-nav-icon">✎</span>Profil</a>
               <a class="acc-nav-item ${activeTab === 'security' ? 'is-active' : ''}" href="${eat.routeUrl('security')}"><span class="acc-nav-icon">🔒</span>Sécurité</a>
-              <a class="acc-nav-item" href="${eat.routeUrl('saved')}"><span class="acc-nav-icon">★</span>Mes favoris</a>
-              <a class="acc-nav-item" href="${eat.routeUrl('cart')}"><span class="acc-nav-icon">🛒</span>Mon panier</a>
-              <a class="acc-nav-item" href="${eat.routeUrl('pantry')}"><span class="acc-nav-icon">🥕</span>Mes provisions</a>
               <button type="button" class="acc-nav-item acc-nav-danger" id="acc-logout" style="width:100%;text-align:left;">
                 <span class="acc-nav-icon">↪</span>Se déconnecter
               </button>
