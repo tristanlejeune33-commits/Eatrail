@@ -840,6 +840,52 @@ select:focus {
 }
 
 /* ─────────────────────────────────────────────────────────
+ * Phase 5 — Empty states polish (handoff §9)
+ * Unified visual: cream-deep card with big mark, headline, lead, CTA.
+ * Applies to .empty wherever it shows up.
+ * ───────────────────────────────────────────────────────── */
+.empty {
+  background: var(--cream-deep);
+  border: 1px solid var(--line);
+  border-radius: var(--r-2xl);
+  padding: 56px 32px;
+  margin: 24px 0;
+  text-align: center;
+}
+.empty::before {
+  content: '✨';
+  display: block;
+  font-size: 48px;
+  margin-bottom: 14px;
+  opacity: .85;
+}
+.empty h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: var(--ls-snug);
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+.empty h3 em { color: var(--primary); font-style: italic; font-weight: 600; }
+.empty p {
+  font-size: 14px;
+  color: var(--muted);
+  max-width: 420px;
+  margin: 0 auto 18px;
+  line-height: var(--lh-body);
+}
+.empty .btn,
+.empty a.btn {
+  margin-top: 6px;
+}
+@media (max-width: 600px) {
+  .empty { padding: 40px 22px; }
+  .empty::before { font-size: 38px; }
+  .empty h3 { font-size: 19px; }
+}
+
+/* ─────────────────────────────────────────────────────────
  * Phase 5 — Trail summary header (page Parcours / viewTrail)
  * Concept-stripe pattern: ink background + gold radial flare,
  * stats row in white-on-cream pills.
