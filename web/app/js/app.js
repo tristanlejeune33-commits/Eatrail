@@ -707,7 +707,7 @@
         render();
       } catch (err) {
         e.target.disabled = false;
-        e.target.textContent = '📍 Activer ma position';
+        e.target.innerHTML = '<img class="btn-icon" src="icons/foodie/27-position.svg" alt="" /> Activer ma position';
         const code = err.message;
         const msg = code === 'permission_denied' ? 'Permission refusée. Tu peux utiliser "NYC par défaut" à la place.'
           : code === 'position_unavailable' ? 'Position GPS indisponible. Réessaie ou utilise "NYC par défaut".'

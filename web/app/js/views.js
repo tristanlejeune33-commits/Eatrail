@@ -688,10 +688,10 @@ window.eat = window.eat || {};
 
               <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;">
                 <a class="btn btn-primary" href="${eat.routeUrl('shops', [], { recipeId: r.id })}" style="display:inline-flex;align-items:center;gap:8px;">
-                  📍 Trouver près de moi
+                  <img class="btn-icon" src="icons/foodie/27-position.svg" alt="" /> Trouver près de moi
                 </a>
                 <button class="btn btn-ghost" data-schedule-meal="${esc(r.id)}" style="display:inline-flex;align-items:center;gap:8px;">
-                  📅 Programmer ce repas
+                  <img class="btn-icon" src="icons/foodie/06-planning.svg" alt="" /> Programmer ce repas
                 </button>
               </div>
 
@@ -871,8 +871,7 @@ window.eat = window.eat || {};
           ${pos
             ? `<button class="btn btn-ghost btn-sm" id="geo-refresh">🔄 Actualiser</button>
                <button class="btn btn-ghost btn-sm" id="geo-clear">✕ Effacer</button>`
-            : `<button class="btn btn-primary btn-sm" id="geo-enable">📍 Activer ma position</button>
-               <button class="btn btn-ghost btn-sm" id="geo-default">NYC par défaut</button>`
+            : `<button class="btn btn-primary btn-sm" id="geo-enable"><img class="btn-icon" src="icons/foodie/27-position.svg" alt="" /> Activer ma position</button>`
           }
         </div>
         ${pos ? `
