@@ -603,8 +603,21 @@ window.eat = window.eat || {};
     const v = r.validator || {};
     const initials = (v.name || '?').split(/\s+/).filter(Boolean).map(s => s[0]).join('').slice(0, 2).toUpperCase();
 
+    // FAB sticky mobile — design handoff §7.3 spec: gold-tagged primary CTA
+    // pinned above the bottom-nav, opens the trail. Hidden on desktop where
+    // the same actions live in the side card (.recipe-side).
+    const totalCost = (r.budget?.perPerson || 0) * servingsState;
+    const fabHtml = `
+      <div class="fab-bar">
+        <a class="fab-trail" href="${eat.routeUrl('trail', [r.id])}">
+          <span>📍 Démarrer le trail</span>
+          <span class="price-tag">~$${totalCost.toFixed(0)}</span>
+        </a>
+      </div>`;
+
     return `
       <div class="container page fade-in">
+        ${fabHtml}
 
         <div class="recipe-hero" style="background:${esc(r.gradient)}">
           ${(window.EATRAIL_IMAGES || {})[r.id] ? `<img class="recipe-hero-img" src="${esc(window.EATRAIL_IMAGES[r.id])}" alt="" onerror="this.remove();" />` : ''}
