@@ -1123,15 +1123,21 @@ window.eat = window.eat || {};
 
     const matchesHtml = matches.length === 0
       ? `<div class="empty"><h3>Ajoute quelques ingrédients</h3><p>On te suggère des recettes anti-gaspi à partir de ce que tu as déjà à la maison.</p></div>`
-      : matches.map(m => `
+      : matches.map(m => {
+          const img = (window.EATRAIL_IMAGES || {})[m.recipe.id];
+          const thumb = img
+            ? `<div class="pantry-recipe-thumb"><img src="${esc(img)}" alt="" loading="lazy" onerror="this.parentNode.innerHTML='${eat.recipeEmoji(m.recipe)}';this.parentNode.style.background='${esc(m.recipe.gradient)}';" /></div>`
+            : `<div class="pantry-recipe-thumb" style="background:${esc(m.recipe.gradient)};">${eat.recipeEmoji(m.recipe)}</div>`;
+          return `
           <a class="pantry-recipe" href="${eat.routeUrl('recipe', [m.recipe.id])}">
-            <div class="pantry-recipe-thumb" style="background:${esc(m.recipe.gradient)};">${eat.recipeEmoji(m.recipe)}</div>
+            ${thumb}
             <div class="pantry-recipe-body">
               <div class="pantry-recipe-title">${esc(m.recipe.title)}</div>
               <div class="pantry-recipe-match">${m.matched}/${m.total} ingrédients dans ton pantry · ${m.pct}% match</div>
               <div class="pantry-recipe-bar"><div class="pantry-recipe-bar-fill" style="width:${m.pct}%"></div></div>
             </div>
-          </a>`).join('');
+          </a>`;
+        }).join('');
 
     return `
       <div class="container page fade-in">
