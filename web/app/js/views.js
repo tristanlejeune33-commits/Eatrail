@@ -2921,6 +2921,101 @@ window.eat = window.eat || {};
   eat.viewNotFound = notFoundView;
 
   // ─────────────────────────────────────────────────────────
+  // LANDING — shown to unauthenticated visitors hitting "/"
+  // ─────────────────────────────────────────────────────────
+
+  /** Minimal in-app landing. Aggressive signup CTA, 3 value propositions,
+   *  3 sample recipe cards, second CTA at the bottom. */
+  eat.viewLanding = function () {
+    // 3 sample recipes for the visual proof. Use anchored slugs so they
+    // exist in the catalog; fall back to first 3 if any is missing.
+    const wanted = ['carbonara', 'cochinita-pibil', 'pho-bo'];
+    const samples = wanted.map(id => eat.recipeById(id))
+      .filter(Boolean)
+      .concat(eat.allRecipes())
+      .slice(0, 3);
+    const sampleCards = samples.map(r => recipeCard(r)).join('');
+
+    const totalRecipes = eat.allRecipes().length;
+    const totalShops = (eat.allShops && eat.allShops().length) || 30;
+    const cuisineCount = new Set(eat.allRecipes().map(r => r.origin?.country).filter(Boolean)).size;
+
+    return `
+      <div class="lp-page fade-in">
+
+        <!-- Hero -->
+        <section class="lp-hero">
+          <div class="lp-hero-bg" aria-hidden="true"></div>
+          <div class="container lp-hero-inner">
+            <span class="page-eyebrow">NYC · ${totalShops} magasins · ${totalRecipes} recettes</span>
+            <h1 class="lp-hero-title">Cuisine le monde.<br/><em>Achète à côté.</em></h1>
+            <p class="lp-hero-lead">
+              eatrail relie chaque recette aux magasins qui vendent vraiment les bons ingrédients
+              autour de toi. Pas de blabla, pas de détours — juste le bon plat et la bonne adresse.
+            </p>
+            <div class="lp-hero-ctas">
+              <a class="btn btn-primary btn-lg" href="${eat.routeUrl('signup')}">Créer mon compte gratuit →</a>
+              <a class="btn btn-ghost" href="${eat.routeUrl('login')}">J'ai déjà un compte</a>
+            </div>
+            <div class="lp-hero-meta">
+              <span>✓ Sans carte bancaire</span>
+              <span>✓ 2 minutes de découverte</span>
+              <span>✓ Annule à tout moment</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3 promesses -->
+        <section class="lp-promises container">
+          <div class="lp-promise">
+            <div class="lp-promise-mark">A</div>
+            <h3>Recettes <em>authentiques</em></h3>
+            <p>${totalRecipes} plats issus de ${cuisineCount} cuisines mondiales, chacun validé par un chef natif. Score d'authenticité de 0 à 100.</p>
+          </div>
+          <div class="lp-promise">
+            <div class="lp-promise-mark">T</div>
+            <h3>Trail <em>optimisé</em></h3>
+            <p>On regroupe tes ingrédients par magasin et on calcule le parcours le plus court. Tu n'ouvres pas quatre apps.</p>
+          </div>
+          <div class="lp-promise">
+            <div class="lp-promise-mark">M</div>
+            <h3>Magasins <em>vrais</em></h3>
+            <p>${totalShops} adresses NYC sélectionnées : H Mart, Kalustyan's, Sahadi's, Tulcingo Deli — pas une enseigne sponsorisée.</p>
+          </div>
+        </section>
+
+        <!-- 3 sample recipes (proof) -->
+        <section class="lp-samples container">
+          <div class="lp-section-head">
+            <span class="page-eyebrow">Aperçu du catalogue</span>
+            <h2>Trois plats au hasard.<br/><em>Tu vois le niveau.</em></h2>
+          </div>
+          <div class="recipe-grid">${sampleCards}</div>
+        </section>
+
+        <!-- Big bottom CTA -->
+        <section class="lp-cta-bottom">
+          <div class="container">
+            <span class="page-eyebrow">Cuisine ce soir</span>
+            <h2>Prêt·e à <em>commencer</em> ?</h2>
+            <p>Crée ton compte en 2 minutes, on règle tes préférences et on te suggère 7 dîners pour la semaine.</p>
+            <div class="lp-hero-ctas" style="justify-content:center;">
+              <a class="btn btn-primary btn-lg" href="${eat.routeUrl('signup')}">Créer mon compte →</a>
+              <a class="btn btn-ghost" href="${eat.routeUrl('home', [], { app: '1' })}">Juste regarder</a>
+            </div>
+          </div>
+        </section>
+
+        <footer class="lp-footer container">
+          <div>© 2026 eatrail · <em>Follow the flavor trail.</em></div>
+          <div>NYC · ${totalShops} magasins · ${totalRecipes} recettes · ${cuisineCount} cuisines</div>
+        </footer>
+
+      </div>
+    `;
+  };
+
+  // ─────────────────────────────────────────────────────────
   // COLLECTIONS / COOKBOOKS  (Liste 2 #N)
   // ─────────────────────────────────────────────────────────
 

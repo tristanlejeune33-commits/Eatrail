@@ -19,7 +19,17 @@
     eat.updateNav(route);
     let html = '';
     try {
-      switch (route.name) {
+      // Landing-first: unauthenticated visitors see the marketing landing
+      // on the home route. Once they sign up / log in, the SPA home renders.
+      // Override via ?app=1 in the URL for QA / preview without authing.
+      const showLanding =
+        route.name === 'home'
+        && !(eat.auth && eat.auth.isAuthenticated && eat.auth.isAuthenticated())
+        && route.query.app !== '1'
+        && typeof eat.viewLanding === 'function';
+      if (showLanding) {
+        html = eat.viewLanding();
+      } else switch (route.name) {
         case 'home':     html = eat.viewHome(); break;
         case 'recipes':  html = eat.viewRecipes(route.query); break;
         case 'recipe':   html = eat.viewRecipe(route.params[0]); break;
@@ -78,10 +88,10 @@
   }
   eat.updateNavAuthState = updateNavAuthState;
 
-  /** Met à jour les badges "panier" (desktop + mobile) dans la nav. */
+  /** Met à jour les badges "panier" (desktop + mobile + drawer) dans la nav. */
   function updateCartBadge() {
     const n = eat.cartCount();
-    ['cart-badge', 'cart-badge-mobile'].forEach(id => {
+    ['cart-badge', 'cart-badge-mobile', 'cart-badge-drawer'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
       el.textContent = n > 99 ? '99+' : (n || '');
@@ -89,6 +99,43 @@
     });
   }
   eat.updateCartBadge = updateCartBadge;
+
+  // ── Mobile drawer (burger menu) — open / close / dismiss
+  function setDrawer(open) {
+    const drawer = document.getElementById('app-drawer');
+    const burger = document.getElementById('nav-burger-toggle');
+    if (!drawer) return;
+    drawer.classList.toggle('is-open', open);
+    drawer.setAttribute('aria-hidden', String(!open));
+    if (burger) {
+      burger.classList.toggle('is-open', open);
+      burger.setAttribute('aria-expanded', String(open));
+    }
+    document.body.classList.toggle('drawer-open', open);
+  }
+  document.addEventListener('click', (e) => {
+    if (e.target.closest && e.target.closest('#nav-burger-toggle')) {
+      const drawer = document.getElementById('app-drawer');
+      setDrawer(!drawer || !drawer.classList.contains('is-open'));
+      return;
+    }
+    if (e.target.id === 'nav-burger-close' || e.target.id === 'app-drawer-backdrop') {
+      setDrawer(false);
+      return;
+    }
+    if (e.target.closest && e.target.closest('[data-drawer-link]')) {
+      // Let the link navigate, then close the drawer
+      setDrawer(false);
+    }
+  });
+  // Close drawer on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') setDrawer(false);
+  });
+  // Close drawer on viewport widening past mobile breakpoint
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 961) setDrawer(false);
+  });
 
   // ── Délégation d'événements globale ──────────────────────
   // Tous les events sont attachés UNE FOIS à document → survivent aux re-renders.

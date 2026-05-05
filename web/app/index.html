@@ -59,34 +59,60 @@
         🛒<span class="nav-badge" id="cart-badge-mobile" style="display:none;">0</span>
       </a>
       <span id="nav-auth-slot-mobile"></span>
+      <button type="button" class="app-nav-burger" id="nav-burger-toggle" aria-label="Ouvrir le menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </div>
 </nav>
+
+<!-- Drawer mobile slide-out — opens via the burger button. Lists every
+     section the SPA can navigate to. Replaces the old 5-item bottom-nav,
+     which couldn't fit /calendar /saved /collections /flavorDna /preferences
+     /settings without crowding. -->
+<div class="app-drawer" id="app-drawer" aria-hidden="true" role="dialog" aria-label="Menu de navigation">
+  <div class="app-drawer-backdrop" id="app-drawer-backdrop"></div>
+  <aside class="app-drawer-panel">
+    <div class="app-drawer-head">
+      <svg class="app-drawer-logo" viewBox="0 0 280 80" aria-hidden="true">
+        <path d="M 8 26 Q 70 8, 140 22 T 264 14" stroke="#D9A441" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+        <circle cx="264" cy="14" r="4.5" fill="#C85A3A"/>
+        <text x="8" y="68" font-family="Fraunces, Georgia, serif" font-weight="700" font-size="44" letter-spacing="-1.6" fill="#15211A">eat<tspan font-weight="600" font-style="italic" fill="#C85A3A">rail</tspan></text>
+      </svg>
+      <button type="button" class="app-drawer-close" id="nav-burger-close" aria-label="Fermer">×</button>
+    </div>
+
+    <nav class="app-drawer-nav">
+      <div class="app-drawer-section">Découvrir</div>
+      <a href="#/" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">🧭</span> <span>Accueil</span></a>
+      <a href="#/recipes" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">📖</span> <span>Toutes les recettes</span></a>
+      <a href="#/shops" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">📍</span> <span>Magasins NYC</span></a>
+
+      <div class="app-drawer-section">Ma cuisine</div>
+      <a href="#/pantry" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">🧺</span> <span>Mes provisions</span></a>
+      <a href="#/cart" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">🛒</span> <span>Mon panier</span><span class="nav-badge" id="cart-badge-drawer" style="display:none;">0</span></a>
+      <a href="#/calendar" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">📅</span> <span>Mon planning</span></a>
+      <a href="#/saved" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">★</span> <span>Mes favoris</span></a>
+      <a href="#/collections" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">📚</span> <span>Mes carnets</span></a>
+
+      <div class="app-drawer-section">Mon compte</div>
+      <a href="#/account" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">👤</span> <span>Vue d'ensemble</span></a>
+      <a href="#/flavor-dna" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">🧬</span> <span>Identité culinaire</span></a>
+      <a href="#/preferences" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">🎯</span> <span>Mes préférences</span></a>
+      <a href="#/settings" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">⚙</span> <span>Profil & avatar</span></a>
+      <a href="#/security" class="app-drawer-link" data-drawer-link><span class="ddl-emoji">🔒</span> <span>Sécurité</span></a>
+    </nav>
+  </aside>
+</div>
 
 <main id="app-root">
   <div class="container page">Chargement…</div>
 </main>
 
-<!-- Bottom nav mobile (Phase 4 — design handoff §8 spec)
-     5 items: Découvrir / Recettes / Magasins / Provisions / Compte.
-     Saved recipes & calendar accessible from /account. -->
-<nav class="app-bottom-nav" aria-label="Navigation principale mobile">
-  <a href="#/" class="bn-item" data-route="">
-    <span class="bn-icon">🧭</span><span class="bn-label">Découvrir</span>
-  </a>
-  <a href="#/recipes" class="bn-item" data-route="recipes">
-    <span class="bn-icon">📖</span><span class="bn-label">Recettes</span>
-  </a>
-  <a href="#/shops" class="bn-item" data-route="shops">
-    <span class="bn-icon">📍</span><span class="bn-label">Magasins</span>
-  </a>
-  <a href="#/pantry" class="bn-item" data-route="pantry">
-    <span class="bn-icon">🧺</span><span class="bn-label">Provisions</span>
-  </a>
-  <a href="#/account" class="bn-item" data-route="account">
-    <span class="bn-icon">👤</span><span class="bn-label">Compte</span>
-  </a>
-</nav>
+<!-- The old 5-item bottom-nav was removed in favour of the burger drawer
+     above (§ user feedback — couldn't fit all 13 destinations in 5 slots).
+     If you ever need a slim quick-action bar, re-introduce it here. -->
+
 
 <footer class="app-footer">
   <div class="container app-footer-inner">
