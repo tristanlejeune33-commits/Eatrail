@@ -1924,8 +1924,14 @@ window.eat = window.eat || {};
               <a class="acc-nav-item ${activeTab === 'overview' ? 'is-active' : ''}" href="${eat.routeUrl('account')}">
                 <span class="acc-nav-icon">🏠</span>Vue d'ensemble
               </a>
+              <a class="acc-nav-item ${activeTab === 'preferences' ? 'is-active' : ''}" href="${eat.routeUrl('preferences')}">
+                <span class="acc-nav-icon">🎯</span>Préférences
+              </a>
+              <a class="acc-nav-item ${activeTab === 'flavorDna' ? 'is-active' : ''}" href="${eat.routeUrl('flavorDna')}">
+                <span class="acc-nav-icon">🧬</span>Identité culinaire
+              </a>
               <a class="acc-nav-item ${activeTab === 'settings' ? 'is-active' : ''}" href="${eat.routeUrl('settings')}">
-                <span class="acc-nav-icon">✎</span>Profil
+                <span class="acc-nav-icon">✎</span>Profil & avatar
               </a>
               <a class="acc-nav-item ${activeTab === 'security' ? 'is-active' : ''}" href="${eat.routeUrl('security')}">
                 <span class="acc-nav-icon">🔒</span>Sécurité
@@ -2686,7 +2692,8 @@ window.eat = window.eat || {};
             <nav class="acc-nav">
               <a class="acc-nav-item ${activeTab === 'overview' ? 'is-active' : ''}" href="${eat.routeUrl('account')}"><span class="acc-nav-icon">🏠</span>Vue d'ensemble</a>
               <a class="acc-nav-item ${activeTab === 'preferences' ? 'is-active' : ''}" href="${eat.routeUrl('preferences')}"><span class="acc-nav-icon">🎯</span>Préférences</a>
-              <a class="acc-nav-item ${activeTab === 'settings' ? 'is-active' : ''}" href="${eat.routeUrl('settings')}"><span class="acc-nav-icon">✎</span>Profil</a>
+              <a class="acc-nav-item ${activeTab === 'flavorDna' ? 'is-active' : ''}" href="${eat.routeUrl('flavorDna')}"><span class="acc-nav-icon">🧬</span>Identité culinaire</a>
+              <a class="acc-nav-item ${activeTab === 'settings' ? 'is-active' : ''}" href="${eat.routeUrl('settings')}"><span class="acc-nav-icon">✎</span>Profil & avatar</a>
               <a class="acc-nav-item ${activeTab === 'security' ? 'is-active' : ''}" href="${eat.routeUrl('security')}"><span class="acc-nav-icon">🔒</span>Sécurité</a>
               <button type="button" class="acc-nav-item acc-nav-danger" id="acc-logout" style="width:100%;text-align:left;">
                 <span class="acc-nav-icon">↪</span>Se déconnecter
