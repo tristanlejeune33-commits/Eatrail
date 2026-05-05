@@ -340,16 +340,16 @@ window.eat = window.eat || {};
     // ── Meal type tabs (Tous / Petit-déj / Plats / Desserts / Boissons) ──
     const counts = eat.mealTypeCounts();
     const tabDefs = [
-      { id: 'main',      label: 'Plats',      emoji: '🍽',  count: counts.main },
-      { id: 'breakfast', label: 'Petit-déj',  emoji: '🥐',  count: counts.breakfast },
-      { id: 'dessert',   label: 'Desserts',   emoji: '🍰',  count: counts.dessert },
-      { id: 'drink',     label: 'Boissons',   emoji: '🥤',  count: counts.drink },
-      { id: 'all',       label: 'Tout voir',  emoji: '📚', count: counts.total },
+      { id: 'main',      label: 'Plats',      icon: 'icons/foodie/21-plats.svg',     count: counts.main },
+      { id: 'breakfast', label: 'Petit-déj',  icon: 'icons/foodie/15-petit-dej.svg', count: counts.breakfast },
+      { id: 'dessert',   label: 'Desserts',   icon: 'icons/foodie/22-desserts.svg',  count: counts.dessert },
+      { id: 'drink',     label: 'Boissons',   icon: 'icons/foodie/23-boissons.svg',  count: counts.drink },
+      { id: 'all',       label: 'Tout voir',  icon: 'icons/foodie/24-tout-voir.svg', count: counts.total },
     ];
     const mealTabs = tabDefs.map(t => {
       const active = mealType === t.id;
       return `<a class="meal-tab ${active ? 'is-active' : ''}" href="${eat.routeUrl('recipes', [], queryFor({ meal: t.id === 'main' ? '' : t.id, page: '' }))}">
-        <span class="meal-tab-emoji">${t.emoji}</span>
+        <img class="meal-tab-emoji" src="${t.icon}" alt="" />
         <span class="meal-tab-label">${esc(t.label)}</span>
         <span class="meal-tab-count">${t.count}</span>
       </a>`;
@@ -1922,19 +1922,19 @@ window.eat = window.eat || {};
             </div>
             <nav class="acc-nav">
               <a class="acc-nav-item ${activeTab === 'overview' ? 'is-active' : ''}" href="${eat.routeUrl('account')}">
-                <span class="acc-nav-icon">🏠</span>Vue d'ensemble
+                <img class="acc-nav-icon" src="icons/foodie/10-vue-ensemble.svg" alt="" />Vue d'ensemble
               </a>
               <a class="acc-nav-item ${activeTab === 'preferences' ? 'is-active' : ''}" href="${eat.routeUrl('preferences')}">
-                <span class="acc-nav-icon">🎯</span>Préférences
+                <img class="acc-nav-icon" src="icons/foodie/11-preferences.svg" alt="" />Préférences
               </a>
               <a class="acc-nav-item ${activeTab === 'flavorDna' ? 'is-active' : ''}" href="${eat.routeUrl('flavorDna')}">
-                <span class="acc-nav-icon">🧬</span>Identité culinaire
+                <img class="acc-nav-icon" src="icons/foodie/12-identite-culinaire.svg" alt="" />Identité culinaire
               </a>
               <a class="acc-nav-item ${activeTab === 'settings' ? 'is-active' : ''}" href="${eat.routeUrl('settings')}">
-                <span class="acc-nav-icon">✎</span>Profil & avatar
+                <img class="acc-nav-icon" src="icons/foodie/13-profil-avatar.svg" alt="" />Profil & avatar
               </a>
               <a class="acc-nav-item ${activeTab === 'security' ? 'is-active' : ''}" href="${eat.routeUrl('security')}">
-                <span class="acc-nav-icon">🔒</span>Sécurité
+                <img class="acc-nav-icon" src="icons/foodie/14-securite.svg" alt="" />Sécurité
               </a>
               <button type="button" class="acc-nav-item acc-nav-danger" id="acc-logout" style="width:100%;text-align:left;">
                 <span class="acc-nav-icon">↪</span>Se déconnecter
@@ -2690,11 +2690,11 @@ window.eat = window.eat || {};
               ${sinceTxt ? `<div class="acc-since">${esc(sinceTxt)}</div>` : ''}
             </div>
             <nav class="acc-nav">
-              <a class="acc-nav-item ${activeTab === 'overview' ? 'is-active' : ''}" href="${eat.routeUrl('account')}"><span class="acc-nav-icon">🏠</span>Vue d'ensemble</a>
-              <a class="acc-nav-item ${activeTab === 'preferences' ? 'is-active' : ''}" href="${eat.routeUrl('preferences')}"><span class="acc-nav-icon">🎯</span>Préférences</a>
-              <a class="acc-nav-item ${activeTab === 'flavorDna' ? 'is-active' : ''}" href="${eat.routeUrl('flavorDna')}"><span class="acc-nav-icon">🧬</span>Identité culinaire</a>
-              <a class="acc-nav-item ${activeTab === 'settings' ? 'is-active' : ''}" href="${eat.routeUrl('settings')}"><span class="acc-nav-icon">✎</span>Profil & avatar</a>
-              <a class="acc-nav-item ${activeTab === 'security' ? 'is-active' : ''}" href="${eat.routeUrl('security')}"><span class="acc-nav-icon">🔒</span>Sécurité</a>
+              <a class="acc-nav-item ${activeTab === 'overview' ? 'is-active' : ''}" href="${eat.routeUrl('account')}"><img class="acc-nav-icon" src="icons/foodie/10-vue-ensemble.svg" alt="" />Vue d'ensemble</a>
+              <a class="acc-nav-item ${activeTab === 'preferences' ? 'is-active' : ''}" href="${eat.routeUrl('preferences')}"><img class="acc-nav-icon" src="icons/foodie/11-preferences.svg" alt="" />Préférences</a>
+              <a class="acc-nav-item ${activeTab === 'flavorDna' ? 'is-active' : ''}" href="${eat.routeUrl('flavorDna')}"><img class="acc-nav-icon" src="icons/foodie/12-identite-culinaire.svg" alt="" />Identité culinaire</a>
+              <a class="acc-nav-item ${activeTab === 'settings' ? 'is-active' : ''}" href="${eat.routeUrl('settings')}"><img class="acc-nav-icon" src="icons/foodie/13-profil-avatar.svg" alt="" />Profil & avatar</a>
+              <a class="acc-nav-item ${activeTab === 'security' ? 'is-active' : ''}" href="${eat.routeUrl('security')}"><img class="acc-nav-icon" src="icons/foodie/14-securite.svg" alt="" />Sécurité</a>
               <button type="button" class="acc-nav-item acc-nav-danger" id="acc-logout" style="width:100%;text-align:left;">
                 <span class="acc-nav-icon">↪</span>Se déconnecter
               </button>

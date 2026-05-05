@@ -242,6 +242,36 @@ body.is-authed .app-drawer-logout-zone { display: block; }
    the logout zone pushes it to the bottom. */
 .app-drawer-nav { display: flex; flex-direction: column; }
 
+/* ════════ FOODIE SVG ICONS ════════════════════════════════════════
+   Hand-drawn SVG icons replace title-tied emojis (drawer, account
+   sidebar, meal tabs). Uniform sizing + crisp rendering on every OS. */
+img.ddl-icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+}
+img.acc-nav-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 10px;
+}
+img.meal-tab-emoji {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  display: inline-block;
+}
+@media (min-width: 768px) {
+  img.meal-tab-emoji { width: 32px; height: 32px; }
+}
+
 /* ════════ FLAG ON RECIPE-CARD ═════════════════════════════════════
    Make sure the inline SVG <img class="flag-emoji"> renders crisply
    inside the white pill (top-left of the card). */
