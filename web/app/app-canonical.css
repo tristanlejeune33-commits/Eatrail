@@ -91,10 +91,12 @@
    by polish.css for visual simplicity — but #nav-auth-slot lives
    *inside* that container. Restore visibility so "Se connecter" is
    the only visible action on the landing page. */
-body.is-landing .app-nav-links-desktop { display: flex !important; }
-body.is-landing .app-nav-links-desktop > .app-nav-link { display: none !important; }
-body.is-landing .app-nav-links-desktop > .app-nav-icon-desktop { display: none !important; }
-body.is-landing .app-nav-links-desktop > #nav-auth-slot { display: inline-flex !important; }
+@media (min-width: 861px) {
+  body.is-landing .app-nav-links-desktop { display: flex !important; }
+  body.is-landing .app-nav-links-desktop > .app-nav-link { display: none !important; }
+  body.is-landing .app-nav-links-desktop > .app-nav-icon-desktop { display: none !important; }
+  body.is-landing .app-nav-links-desktop > #nav-auth-slot { display: inline-flex !important; }
+}
 body.is-landing .app-nav-top-mobile #nav-auth-slot-mobile { display: inline-flex !important; }
 /* Mobile cart icon also hidden on landing — only login matters */
 body.is-landing .app-nav-top-mobile > a.app-nav-icon[data-route="cart"] { display: none !important; }
@@ -182,19 +184,25 @@ body.is-landing #nav-auth-slot-mobile a.app-nav-icon::after { font-size: 13px !i
   justify-content: center;
 }
 
-/* Push the cart icon + auth slot to the far right of the desktop nav. */
-.app-nav-links-desktop {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+/* Push the cart icon + auth slot to the far right of the desktop nav.
+   IMPORTANT: only flex from the desktop breakpoint up — below that
+   the mobile top-bar takes over and this container must stay hidden. */
+@media (min-width: 861px) {
+  .app-nav-links-desktop {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .app-nav-links-desktop .app-nav-icon-desktop { margin-left: 8px; }
+  .app-nav-links-desktop #nav-auth-slot { margin-left: 6px; }
 }
-.app-nav-links-desktop .app-nav-icon-desktop { margin-left: 8px; }
-.app-nav-links-desktop #nav-auth-slot { margin-left: 6px; }
 
 /* On the mobile top bar we already have the burger — drop the
    redundant cart icon there. The drawer + desktop slot cover it. */
-@media (max-width: 960px) {
+@media (max-width: 860px) {
+  .app-nav-links-desktop { display: none !important; }
   .app-nav-icon-desktop { display: none !important; }
+  .app-nav-top-mobile { display: flex !important; }
 }
 
 /* ════════ DRAWER LOGOUT BUTTON ═══════════════════════════════════
