@@ -1974,6 +1974,18 @@ window.eat = window.eat || {};
       <h2>Vue d'ensemble</h2>
       <p class="acc-main-lead">Tes activités sur eatrail en un coup d'œil.</p>
 
+      <!-- Flavor DNA teaser — design handoff §7.5 spec
+           gold-soft card with gold left-accent, pointing to /flavor-dna -->
+      <a class="dna-teaser" href="${eat.routeUrl('flavorDna')}">
+        <div class="dna-teaser-mark">🧬</div>
+        <div class="dna-teaser-body">
+          <span class="page-eyebrow no-dot">Identité culinaire</span>
+          <h3>Découvre ton <em>profil de goût</em></h3>
+          <p>Cuisines préférées, ingrédients explorés, archétype dominant — façon Spotify Wrapped.</p>
+        </div>
+        <span class="dna-teaser-arrow">→</span>
+      </a>
+
       <div class="acc-stats">
         <a class="acc-stat" href="${eat.routeUrl('saved')}">
           <span class="acc-stat-icon">★</span>

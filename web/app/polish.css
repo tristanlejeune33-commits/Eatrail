@@ -840,6 +840,73 @@ select:focus {
 }
 
 /* ─────────────────────────────────────────────────────────
+ * Phase 5 — Flavor DNA teaser card on /account
+ * Gold-soft surface with a gold left accent, pointing to /flavor-dna.
+ * Spec: design handoff §7.5 — "card with gold left-border accent 4 px".
+ * ───────────────────────────────────────────────────────── */
+.dna-teaser {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
+  background: var(--gold-soft);
+  border: 1px solid var(--gold);
+  border-left: 4px solid var(--gold);
+  border-radius: var(--r-xl);
+  margin: 16px 0 28px;
+  text-decoration: none;
+  color: var(--ink);
+  transition: transform var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur) var(--ease-out);
+}
+.dna-teaser:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+}
+.dna-teaser-mark {
+  font-size: 36px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 6px rgba(217, 164, 65, .35));
+}
+.dna-teaser-body { flex: 1; min-width: 0; }
+.dna-teaser-body .page-eyebrow,
+.dna-teaser-body .eyebrow { color: #A77A1F; font-size: 11px; }
+.dna-teaser-body h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 19px;
+  margin: 4px 0 4px;
+  color: var(--ink);
+  letter-spacing: var(--ls-snug);
+}
+.dna-teaser-body h3 em {
+  font-style: italic;
+  font-weight: 600;
+  color: #A77A1F;
+}
+.dna-teaser-body p {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: 0;
+  line-height: var(--lh-body);
+}
+.dna-teaser-arrow {
+  font-size: 22px;
+  color: #A77A1F;
+  font-weight: 600;
+  flex-shrink: 0;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.dna-teaser:hover .dna-teaser-arrow { transform: translateX(4px); }
+
+@media (max-width: 600px) {
+  .dna-teaser { padding: 14px 16px; gap: 12px; }
+  .dna-teaser-mark { font-size: 28px; }
+  .dna-teaser-body h3 { font-size: 16px; }
+  .dna-teaser-body p { font-size: 12.5px; }
+}
+
+/* ─────────────────────────────────────────────────────────
  * Reduce motion — respect the OS setting
  * ───────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
