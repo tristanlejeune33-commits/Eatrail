@@ -1,129 +1,138 @@
-/* eatrail · Design system — tokens
+/* eatrail · Design System v3 — canonical tokens
  *
- * Source of truth for the eatrail brand. Loaded BEFORE styles.css so the
- * values registered here are the canonical ones; styles.css can still
- * override case-by-case but new code should reach for these.
+ * Source of truth: design_handoff_eatrail/README.md § 5 + colors_and_type.css
  *
- * Mirror of `eatrail ux/colors_and_type.css` — keep them in sync when the
- * design system updates.
+ * Loaded BEFORE styles.css so values registered here take precedence as the
+ * canonical brand palette. Old aliases (--accent, --shadow, --radius-sm,
+ * etc.) are kept so legacy CSS continues to compile without changes.
  */
 
 :root {
-  /* ─── BRAND COLORS — GREEN (default, production) ─────── */
-  --primary:        #3F8B54;
-  --primary-dark:   #2D6940;
-  --primary-light:  #7FB069;
-  --accent:         #C85A3A;
-  --gold:           #D9A441;
+  /* ─────────── Brand colors (Phase 1, README §5) ─────────── */
+  --primary:        #3F8B54;   /* basil green — CTA, links, brand accents */
+  --primary-dark:   #2D6940;   /* hover/pressed */
+  --primary-soft:   #E8F0EA;   /* tinted backgrounds, chip fills */
+  --primary-light:  #7FB069;   /* legacy alias, still in use */
 
-  /* ─── NEUTRALS ─────────────────────────────────────── */
-  --cream:          #F5F7EE;
-  --cream-deep:     #E6ECD6;
-  --cream-soft:     #FAFBF4;
-  --line:           #D5DDC5;
-  --line-soft:      #E8EDDC;
-  --white:          #FFFFFF;
-  --ink:            #15211A;
-  --ink-soft:       #2A3A30;
-  --muted:          #5F6E62;
+  --gold:           #D9A441;   /* saffron — highlights, validator badge */
+  --gold-soft:      #F5E8CC;
 
-  /* ─── ALT THEME — TERRACOTTA (landing v1) ──────────── */
-  --tc-primary:        #E8602C;
-  --tc-primary-dark:   #C54818;
-  --tc-accent:         #2E5D3E;
-  --tc-gold:           #E4AE3A;
-  --tc-cream:          #FBF6EC;
-  --tc-cream-deep:     #F3EBD8;
-  --tc-line:           #E6DCC8;
-  --tc-ink:            #181614;
-  --tc-muted:          #6B655E;
+  --terracotta:     #C26449;   /* warm accent — sparingly */
 
-  /* ─── TINTS (chip/pill backgrounds) ────────────────── */
-  --tint-primary:       rgba(63, 139, 84, 0.12);
-  --tint-primary-soft:  rgba(63, 139, 84, 0.06);
-  --tint-accent:        rgba(200, 90, 58, 0.12);
+  /* ─────────── Neutrals ─────────── */
+  --ink:            #1F1F1C;   /* primary text */
+  --ink-soft:       #3A3A35;   /* secondary text */
+  --muted:          #7A7A72;   /* tertiary text, captions */
+  --line:           #E8E5DC;   /* hairline borders */
+  --line-soft:      #F0EDE4;   /* deeper hairlines */
+
+  --cream:          #FAF7F0;   /* page background — warm */
+  --cream-deep:     #F2EDDF;   /* alt section background */
+  --cream-soft:     #FCFAF4;   /* near-paper, optional */
+  --paper:          #FFFFFF;   /* card surface */
+  --white:          #FFFFFF;   /* legacy alias */
+
+  /* ─────────── Semantic ─────────── */
+  --success:        var(--primary);
+  --warn:           var(--gold);
+  --warning:        var(--gold);          /* legacy */
+  --error:          var(--terracotta);
+  --danger:         var(--terracotta);    /* legacy */
+  --accent:         var(--terracotta);    /* legacy alias */
+
+  /* Surfaces / aliases used in styles.css */
+  --bg:             var(--cream);
+  --bg-deep:        var(--cream-deep);
+  --surface:        var(--paper);
+  --surface-dark:   var(--ink);
+  --fg1:            var(--ink);
+  --fg2:            var(--muted);
+  --fg-on-dark:     var(--cream);
+  --fg-on-primary:  var(--cream);
+  --border:         var(--line);
+
+  /* Tints (for chip / pill backgrounds) */
+  --tint-primary:       rgba(63, 139, 84, 0.10);
+  --tint-primary-soft:  rgba(63, 139, 84, 0.05);
+  --tint-accent:        rgba(194, 100, 73, 0.12);
   --tint-gold:          rgba(217, 164, 65, 0.14);
 
-  /* ─── SEMANTIC SURFACES ─────────────────────────────── */
-  --bg:              var(--cream);
-  --bg-deep:         var(--cream-deep);
-  --surface:         var(--white);
-  --surface-dark:    var(--ink);
-  --fg1:             var(--ink);
-  --fg2:             var(--muted);
-  --fg-on-dark:      var(--cream);
-  --fg-on-primary:   var(--cream);
-  --border:          var(--line);
-  --success:         var(--primary);
-  --warning:         var(--gold);
-  --danger:          var(--accent);
-
-  /* ─── TYPE FAMILIES ─────────────────────────────────── */
-  --font-display:    'Fraunces', 'Times New Roman', Georgia, serif;
-  --font-body:       'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* ─────────── Type families ─────────── */
+  --font-display:    'Fraunces', Georgia, serif;
+  --font-body:       'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono:       ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
-  /* ─── TYPE SCALE ────────────────────────────────────── */
-  --fs-hero:         84px;
-  --fs-h1:           54px;
-  --fs-h2:           34px;
-  --fs-h3:           22px;
-  --fs-h4:           18px;
-  --fs-body:         15px;
-  --fs-body-lg:      17px;
-  --fs-small:        13px;
-  --fs-xs:           12px;
-  --fs-eyebrow:      12px;
+  /* ─────────── Type scale (mobile-first, fluid) ─────────── */
+  --fs-h1:        clamp(38px, 11vw, 76px);
+  --fs-h2:        clamp(34px, 9vw, 56px);
+  --fs-h3:        clamp(22px, 5vw, 32px);
+  --fs-lead:      17px;
+  --fs-body:      15px;
+  --fs-caption:   12.5px;
+  --fs-micro:     10.5px;
+  /* Legacy aliases used in styles.css */
+  --fs-hero:      var(--fs-h1);
+  --fs-h4:        18px;
+  --fs-body-lg:   var(--fs-lead);
+  --fs-small:     13px;
+  --fs-xs:        12px;
+  --fs-eyebrow:   12px;
 
-  --lh-tight:        1.02;
-  --lh-snug:         1.1;
-  --lh-normal:       1.55;
+  --lh-tight:     1.05;
+  --lh-snug:      1.2;
+  --lh-body:      1.5;
+  --lh-normal:    var(--lh-body);
 
-  --ls-tight:       -0.02em;
-  --ls-snug:        -0.01em;
-  --ls-normal:       0;
-  --ls-wide:         0.04em;
-  --ls-eyebrow:      0.15em;
+  --ls-tight:    -0.02em;
+  --ls-snug:     -0.01em;
+  --ls-normal:    0;
+  --ls-wide:      0.04em;
+  --ls-eyebrow:   0.15em;
 
-  /* ─── SPACING & RADII ───────────────────────────────── */
+  /* ─────────── Spacing (4-pt scale, README §5) ─────────── */
   --space-1:   4px;
   --space-2:   8px;
-  --space-3:   12px;
-  --space-4:   16px;
-  --space-5:   20px;
-  --space-6:   24px;
-  --space-7:   32px;
-  --space-8:   48px;
-  --space-9:   64px;
-  --space-10:  90px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-7:  32px;
+  --space-8:  40px;
+  --space-9:  48px;
+  --space-10: 64px;
+  --space-11: 80px;
+  --space-12: 120px;
 
-  --radius-sm:   10px;
-  --radius:      18px;
-  --radius-lg:   28px;
-  --radius-xl:   36px;
-  --radius-pill: 999px;
+  /* ─────────── Radii (canonical naming) ─────────── */
+  --r-sm:    8px;
+  --r-md:   12px;
+  --r-lg:   16px;
+  --r-xl:   20px;
+  --r-2xl:  28px;
+  --r-full: 999px;
+  /* Legacy aliases — kept while styles.css uses these */
+  --radius-sm:   var(--r-sm);
+  --radius:      var(--r-xl);
+  --radius-lg:   var(--r-2xl);
+  --radius-xl:   var(--r-2xl);
+  --radius-pill: var(--r-full);
 
-  /* ─── ELEVATION ─────────────────────────────────────── */
-  --shadow-soft: 0 4px 14px -8px rgba(24, 22, 20, 0.10);
-  --shadow:      0 10px 40px -15px rgba(24, 22, 20, 0.18);
-  --shadow-lg:   0 20px 60px -20px rgba(24, 22, 20, 0.25);
+  /* ─────────── Shadows ─────────── */
+  --shadow-1:    0 1px 2px rgba(31, 31, 28, 0.06);
+  --shadow-2:    0 6px 18px rgba(31, 31, 28, 0.08);
+  --shadow-3:    0 16px 40px rgba(31, 31, 28, 0.12);
+  --shadow-hero: 0 32px 80px rgba(31, 31, 28, 0.18);
+  /* Legacy aliases */
+  --shadow-soft: var(--shadow-1);
+  --shadow:      var(--shadow-2);
+  --shadow-lg:   var(--shadow-3);
 
-  /* ─── MOTION ────────────────────────────────────────── */
-  --ease-out:  cubic-bezier(0.16, 1, 0.3, 1);
-  --dur-fast:  0.15s;
-  --dur:       0.2s;
-  --dur-slow:  0.4s;
-}
-
-/* Theme switch helper — body.theme-terracotta swaps to the alt landing palette */
-body.theme-terracotta {
-  --primary:      var(--tc-primary);
-  --primary-dark: var(--tc-primary-dark);
-  --accent:       var(--tc-accent);
-  --gold:         var(--tc-gold);
-  --cream:        var(--tc-cream);
-  --cream-deep:   var(--tc-cream-deep);
-  --line:         var(--tc-line);
-  --ink:          var(--tc-ink);
-  --muted:        var(--tc-muted);
+  /* ─────────── Motion ─────────── */
+  --ease-out:     cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out:  cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast:     160ms;
+  --dur-base:     240ms;
+  --dur-slow:     400ms;
+  /* Legacy alias */
+  --dur:          var(--dur-base);
 }
