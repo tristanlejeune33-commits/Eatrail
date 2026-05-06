@@ -1995,22 +1995,22 @@ window.eat = window.eat || {};
 
       <div class="acc-stats">
         <a class="acc-stat" href="${eat.routeUrl('saved')}">
-          <span class="acc-stat-icon">★</span>
+          <img class="acc-stat-icon" src="icons/foodie/07-favoris.svg" alt="" />
           <div class="acc-stat-num">${stats.saved}</div>
           <div class="acc-stat-label">Favoris</div>
         </a>
         <a class="acc-stat" href="${eat.routeUrl('cart')}">
-          <span class="acc-stat-icon">🛒</span>
+          <img class="acc-stat-icon" src="icons/foodie/05-panier.svg" alt="" />
           <div class="acc-stat-num">${stats.cart}</div>
           <div class="acc-stat-label">Items au panier</div>
         </a>
         <a class="acc-stat" href="${eat.routeUrl('pantry')}">
-          <span class="acc-stat-icon">🥕</span>
+          <img class="acc-stat-icon" src="icons/foodie/04-provisions.svg" alt="" />
           <div class="acc-stat-num">${stats.pantry}</div>
           <div class="acc-stat-label">Provisions</div>
         </a>
         <div class="acc-stat" style="cursor:default;">
-          <span class="acc-stat-icon">⭐</span>
+          <img class="acc-stat-icon" src="icons/foodie/12-identite-culinaire.svg" alt="" />
           <div class="acc-stat-num">${stats.reviews}</div>
           <div class="acc-stat-label">Avis postés</div>
         </div>
@@ -2305,12 +2305,6 @@ window.eat = window.eat || {};
           <div class="onb-section-title">Tes cuisines aimées</div>
           <div class="onb-section-help">Multi-sélection. Boost direct sur les recettes correspondantes.</div>
           <div class="flag-grid">${cuisinesHtml}</div>
-        </div>
-
-        <div class="onb-section">
-          <div class="onb-section-title">Tu aimes ? Tu n'aimes pas ?</div>
-          <div class="onb-section-help">Clique une fois pour aimer (♥), deux fois pour ne pas aimer (×).</div>
-          <div class="plate-grid">${platesHtml}</div>
         </div>
 
         <div class="onb-section">
