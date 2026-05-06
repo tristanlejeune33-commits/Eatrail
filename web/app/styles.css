@@ -81,10 +81,11 @@ img { max-width: 100%; display: block; }
 [hidden] { display: none !important; }
 
 /* ── LAYOUT ─────────────────────────────────────────── */
-.container { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
-@media (max-width: 600px) { .container { padding: 0 18px; } }
-@media (min-width: 1280px) { .container { max-width: 1280px; padding: 0 40px; } }
-@media (min-width: 1600px) { .container { max-width: 1400px; padding: 0 48px; } }
+.container { max-width: 1180px; margin: 0 auto; padding: 0 24px; box-sizing: border-box; }
+@media (min-width: 600px)  { .container { padding: 0 32px; } }
+@media (min-width: 960px)  { .container { padding: 0 48px; } }
+@media (min-width: 1280px) { .container { max-width: 1280px; padding: 0 64px; } }
+@media (min-width: 1600px) { .container { max-width: 1400px; padding: 0 80px; } }
 
 /* ── TOP NAV ────────────────────────────────────────── */
 .app-nav {
