@@ -2379,18 +2379,6 @@ window.eat = window.eat || {};
         </div>
 
         <div class="onb-section">
-          <div class="onb-section-title">Budget courses hebdo : <strong style="color:var(--primary);">$<span id="onb-budget-val">${budget}</span></strong></div>
-          <div class="range-wrap">
-            <input type="range" class="range-input" id="onb-budget"
-              min="30" max="300" step="10" value="${budget}"
-              style="--pct: ${((budget - 30) / 270) * 100}%" />
-            <div class="range-marks">
-              <span>$30</span><span>$100</span><span>$200</span><span>$300+</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="onb-section">
           <div class="onb-section-title">Temps par jour (en semaine) : <strong style="color:var(--primary);"><span id="onb-time-val">${minutes}</span> min</strong></div>
           <div class="range-wrap">
             <input type="range" class="range-input" id="onb-time"
@@ -2638,13 +2626,6 @@ window.eat = window.eat || {};
               <span class="stepper-value" id="prefs-kids">${kids}</span>
               <button type="button" data-prefs-household="kids|1">+</button>
             </div>
-          </div>
-        </div>
-        <div style="margin-bottom:18px;">
-          <div style="font-size:13px;color:var(--muted);margin-bottom:6px;">Budget hebdo : <strong style="color:var(--primary);">$<span id="prefs-budget-val">${budget}</span></strong></div>
-          <div class="range-wrap">
-            <input type="range" class="range-input" id="prefs-budget" min="30" max="300" step="10" value="${budget}"
-              style="--pct: ${((budget - 30) / 270) * 100}%" />
           </div>
         </div>
         <div>
