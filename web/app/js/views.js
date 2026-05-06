@@ -418,17 +418,17 @@ window.eat = window.eat || {};
     // v1.3 : barre indiquant que les préférences sont appliquées
     const prefsBar = (hasPrefs && !ignorePrefs) ? `
       <div class="prefs-active-bar">
-        <div>
+        <div class="prefs-active-bar-text">
           🎯 <strong>${eat.prefs.activeFilterCount()} préférence${eat.prefs.activeFilterCount() > 1 ? 's' : ''}</strong> appliquée${eat.prefs.activeFilterCount() > 1 ? 's' : ''}.
           ${filteredOut > 0 ? `${filteredOut} recette${filteredOut > 1 ? 's' : ''} masquée${filteredOut > 1 ? 's' : ''}.` : 'Tri par pertinence.'}
         </div>
-        <div style="display:flex;gap:8px;">
+        <div class="prefs-active-bar-actions">
           <a class="btn btn-ghost btn-sm" href="${eat.routeUrl('preferences')}">Modifier</a>
-          <a class="btn btn-ghost btn-sm" href="${eat.routeUrl('recipes', [], { ...query, nofilter: '1' })}">Ignorer mes prefs</a>
+          <a class="btn btn-ghost btn-sm" href="${eat.routeUrl('recipes', [], { ...query, nofilter: '1' })}">Ignorer</a>
         </div>
       </div>` : (ignorePrefs && hasPrefs) ? `
       <div class="prefs-active-bar" style="background:rgba(217,164,65,.1);border-color:rgba(217,164,65,.3);">
-        <div>⚠ Préférences <strong>ignorées</strong>. Tu vois tout le catalogue.</div>
+        <div class="prefs-active-bar-text">⚠ Préférences <strong>ignorées</strong>. Tu vois tout le catalogue.</div>
         <a class="btn btn-ghost btn-sm" href="${eat.routeUrl('recipes', [], { ...query, nofilter: '' })}">Ré-appliquer</a>
       </div>` : '';
 

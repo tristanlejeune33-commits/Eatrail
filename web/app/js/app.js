@@ -18,6 +18,17 @@
   // Anything else forces the landing page when unauthenticated.
   const ANON_ROUTES = new Set(['login', 'signup', 'forgot', 'reset']);
 
+  // Track previous route so pagination ("Charger 30 de plus") can keep
+  // the user's scroll position instead of yanking them back to the top.
+  let _prevRouteSig = '';
+  function routeSigForScroll(route) {
+    // Sig that ignores the `page` query so paginated lists are
+    // treated as the same page for scroll purposes.
+    const q = { ...(route.query || {}) };
+    delete q.page;
+    return route.name + '|' + (route.params || []).join('/') + '|' + Object.keys(q).sort().map(k => k + '=' + q[k]).join('&');
+  }
+
   function render() {
     const route = eat.parseRoute();
     eat.updateNav(route);
@@ -86,7 +97,14 @@
     // run now (currently: flag-emoji.js replaces 🇫🇷 emojis with SVG <img>
     // for cross-platform / Windows rendering parity).
     document.dispatchEvent(new CustomEvent('eat:render'));
-    window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+    // Only reset scroll when the underlying page actually changed.
+    // Same path + same query (minus `page`) → user just clicked
+    // "Charger 30 de plus" → keep their scroll position.
+    const sig = routeSigForScroll(route);
+    if (sig !== _prevRouteSig) {
+      window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+    }
+    _prevRouteSig = sig;
   }
 
   /** Adapte la nav selon l'état de connexion (avatar vs lien Connexion). */

@@ -298,6 +298,38 @@ img.pill-icon {
   flex-shrink: 0;
 }
 
+/* ════════ PREFS ACTIVE BAR — mobile-friendly buttons ═══════════════
+   The "Modifier / Ignorer" actions on /recettes were rendering as
+   ugly circles on mobile because their text wrapped to 3 lines
+   inside a pill (border-radius: 999px). Force nowrap and let the
+   bar wrap below the text on narrow screens. */
+.prefs-active-bar .btn-sm {
+  white-space: nowrap !important;
+  flex-shrink: 0;
+}
+.prefs-active-bar-text {
+  flex: 1;
+  min-width: 0;
+}
+.prefs-active-bar-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+@media (max-width: 600px) {
+  .prefs-active-bar {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  .prefs-active-bar-actions {
+    width: 100%;
+  }
+  .prefs-active-bar-actions .btn-sm {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
 /* ════════ FLAG ON RECIPE-CARD ═════════════════════════════════════
    Make sure the inline SVG <img class="flag-emoji"> renders crisply
    inside the white pill (top-left of the card). */
