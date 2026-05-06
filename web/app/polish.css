@@ -1593,9 +1593,10 @@ select:focus {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 12px;
-  padding: 12px 0;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--line);
   align-items: center;
+  border-radius: 6px;
 }
 .ing-item:last-child { border-bottom: 0; }
 .ing-item .ing-name {

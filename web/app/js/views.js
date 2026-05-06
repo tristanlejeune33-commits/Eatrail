@@ -956,7 +956,11 @@ window.eat = window.eat || {};
 
     let shops, trail = null, source = 'static';
 
-    if (ctx.pos) {
+    // When the user is searching by text (q), always pull from the
+    // static curated list so the search is global — the API path is
+    // strictly geo-radius based and would silently drop everything
+    // outside the radius even if it matches the typed query.
+    if (ctx.pos && !ctx.q) {
       // Try API
       try {
         const params = { lat: ctx.pos.lat, lng: ctx.pos.lng, radius: ctx.radius };
@@ -975,7 +979,20 @@ window.eat = window.eat || {};
     }
 
     // Apply text + type filters
-    if (ctx.q) shops = shops.filter(s => ((s.name || '') + ' ' + (s.neighborhood || s.address || '') + ' ' + (s.description || s.story || '')).toLowerCase().includes(ctx.q));
+    if (ctx.q) {
+      const needle = ctx.q.toLowerCase();
+      shops = shops.filter(s => {
+        const hay = [
+          s.name || '',
+          s.neighborhood || '',
+          s.address || '',
+          s.description || s.story || '',
+          (s.tags || []).join(' '),
+          (s.rareCarried || []).join(' '),
+        ].join(' ').toLowerCase();
+        return hay.includes(needle);
+      });
+    }
     if (ctx.typeFilter) shops = shops.filter(s => s.type === ctx.typeFilter);
 
     // Render trail summary if exists
@@ -3099,7 +3116,16 @@ window.eat = window.eat || {};
       return;
     }
 
-    const recipes = (col.recipes || []).map(cr => cr.recipe).filter(Boolean);
+    // The API returns recipes with FLAT fields (country, region, flag, …)
+    // but recipeCard() expects the nested shape (r.origin.country, …)
+    // used by the local data files. Re-resolve each recipe through
+    // eat.recipeById() so the rendering uses the same structure.
+    const recipes = (col.recipes || [])
+      .map(cr => {
+        const id = cr.recipeId || (cr.recipe && cr.recipe.id);
+        return id ? (eat.recipeById(id) || cr.recipe) : null;
+      })
+      .filter(Boolean);
     const cardsHtml = recipes.length
       ? `<div class="recipe-grid">${recipes.map(r => collectionRecipeCard(r, col.id)).join('')}</div>`
       : `<div class="empty"><h3>Collection vide</h3><p>Ajoute des recettes depuis leur page (bouton "＋ Collection").</p></div>`;
